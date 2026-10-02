@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Refund Desk — PayPal Sandbox</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#workspace">Skip to review</a>
+  <header class="masthead">
+    <div class="brand">Refund Desk <span class="environment">PayPal Sandbox</span></div>
+    <span id="connection" class="connection" role="status">Connecting to local session…</span>
+  </header>
+  <main>
+    <div class="intro">
+      <div><p class="eyebrow">Merchant review</p><h1>Evidence before action.</h1></div>
+      <p>Review the request, check the policy, then decide.<br>Every refund here uses sandbox money.</p>
+    </div>
+    <p id="operator-mode" class="notice" hidden>Test operator mode. Approvals are recorded as automated operator actions, not personal merchant approval.</p>
+    <div id="alert" class="notice error" role="alert" tabindex="-1" hidden></div>
+    <p id="activity" class="notice" role="status" aria-live="polite" hidden></p>
+    <div id="locked" class="empty-state" hidden>
+      <h2>Open your private launch link</h2>
+      <p>The local server saves it in <code>browser-session.json</code> inside your data directory. The link grants access to this sandbox session.</p>
+    </div>
+    <div id="app" class="workspace" hidden>
+      <aside class="sidebar" aria-label="Refund cases">
+        <div class="section-heading"><h2>Cases <span id="case-count" class="muted">0</span></h2><button id="reload" type="button" class="text-button">Reload</button></div>
+        <nav id="case-list" aria-label="Select a refund case"></nav>
+        <p id="no-cases" class="muted small">No cases yet. Start with a captured sandbox payment.</p>
+        <details id="new-case" open>
+          <summary>New refund request</summary>
+          <form id="case-form">
+            <label for="capture-id">Sandbox capture ID</label>
+            <input id="capture-id" name="capture_id" required maxlength="64" pattern="[A-Za-z0-9]+" autocomplete="off" spellcheck="false" aria-describedby="capture-help">
+            <p id="capture-help" class="field-help">Amount and payment date come from PayPal.</p>
+            <label for="customer-message">Customer message</label>
+            <textarea id="customer-message" name="customer_message" rows="4" required maxlength="4000"></textarea>
+            <label for="item-used">Item condition</label>
+            <select id="item-used" name="item_used">
+              <option value="unknown">Not yet confirmed</option>
+              <option value="unused">Unused — confirmed by merchant</option>
+              <option value="used">Used — confirmed by merchant</option>
+            </select>
+            <p class="field-help">Confirm the condition before creating a case for AI review.</p>
+            <label for="request-date">Date request received (UTC)</label>
+            <input id="request-date" name="request_date" type="date" required>
+            <button id="create-case-button" type="submit" class="primary full-width" disabled>Fetch payment and create case</button>
+            <p class="field-help">Creates a review case. No refund is submitted.</p>
+          </form>
+        </details>
+      </aside>
+      <section id="workspace" class="review-pane" tabindex="-1" aria-label="Selected case">
+        <div id="empty-review" class="empty-state">
+          <span class="step-mark" aria-hidden="true">01 — 02 — 03</span>
+          <h2>A clear record for every decision.</h2>
+          <p>Choose a case to see payment evidence, the AI assessment, and the approval record.</p>
+          <ol class="steps"><li>Verify the payment</li><li>Assess against policy</li><li>Approve and check the result</li></ol>
+        </div>
+        <article id="case-detail" hidden>
+          <div class="case-header"><div><p id="case-reference" class="eyebrow mono"></p><h2 id="case-title">Refund request</h2></div><span id="case-state" class="status"></span></div>
+          <p id="provenance" class="provenance"></p>
+          <p id="case-error" class="notice error" hidden></p>
+          <section class="review-section" aria-labelledby="evidence-heading">
+            <div class="section-heading"><h3 id="evidence-heading"><span class="section-number">01</span> Payment &amp; request</h3></div>
+            <dl id="facts" class="facts"></dl>
+            <div class="customer-note"><p class="eyebrow">Customer message · untrusted text</p><p id="message"></p></div>
+            <details class="policy"><summary>Policy used for this case <span id="policy-version" class="muted"></span></summary><div id="policy-clauses"></div></details>
+          </section>
+          <section class="review-section" aria-labelledby="assessment-heading">
+            <div class="section-heading"><h3 id="assessment-heading"><span class="section-number">02</span> AI assessment</h3><button id="review-button" type="button" class="secondary">Assess request</button></div>
+            <p id="review-guidance" class="muted"></p>
+            <div id="assessment" hidden><p id="recommendation" class="decision"></p><p id="rationale"></p><div id="citations" class="citations"></div><ul id="review-errors" class="error-list"></ul><p id="model-evidence" class="field-help"></p></div>
+          </section>
+          <section class="review-section" aria-labelledby="approval-heading">
+            <h3 id="approval-heading"><span class="section-number">03</span> Decision &amp; result</h3>
+            <p id="approval-guidance" class="muted"></p>
+            <div id="approval-controls" hidden>
+              <label class="check-row"><input id="approval-check" type="checkbox"><span id="approval-label">I reviewed the evidence and policy and approve this sandbox refund.</span></label>
+              <button id="approve-button" type="button" class="primary" disabled>Approve sandbox refund</button>
+            </div>
+            <div id="operation" hidden><dl id="operation-facts" class="facts"></dl><p id="operation-error" class="notice error" hidden></p><button id="refresh-button" type="button" class="secondary">Check PayPal status</button><p id="refresh-guidance" class="field-help">Reads the refund status separately. It does not submit another refund.</p></div>
+            <details class="audit" open><summary>Activity record</summary><ol id="audit-list"></ol></details>
+          </section>
+        </article>
+      </section>
+    </div>
+  </main>
+  <footer>Local session · PayPal sandbox only · AI recommends; a person approves.</footer>
+</body>
+</html>

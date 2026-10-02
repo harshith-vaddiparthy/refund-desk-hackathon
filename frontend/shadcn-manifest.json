@@ -1,0 +1,122 @@
+{
+  "cli": "shadcn",
+  "cli_version": "4.21.1",
+  "source_registry": "https://ui.shadcn.com",
+  "template": "vite",
+  "base": "radix",
+  "preset": "nova",
+  "components_config": {
+    "$schema": "https://ui.shadcn.com/schema.json",
+    "style": "radix-nova",
+    "rsc": false,
+    "tsx": true,
+    "tailwind": {
+      "config": "",
+      "css": "src/index.css",
+      "baseColor": "neutral",
+      "cssVariables": true,
+      "prefix": ""
+    },
+    "iconLibrary": "lucide",
+    "rtl": false,
+    "aliases": {
+      "components": "@/components",
+      "utils": "@/lib/utils",
+      "ui": "@/components/ui",
+      "lib": "@/lib",
+      "hooks": "@/hooks"
+    },
+    "menuColor": "default",
+    "menuAccent": "subtle",
+    "registries": {}
+  },
+  "commands": [
+    "npm exec --yes --package=shadcn@4.21.1 -- shadcn init --template vite --base radix --preset nova --name frontend --no-monorepo --yes",
+    "npm install --save-dev --save-exact shadcn@4.21.1",
+    "npm exec -- shadcn add sidebar card table badge tabs dialog alert select input textarea checkbox separator skeleton sonner label --yes"
+  ],
+  "generated_components": [
+    {
+      "path": "src/components/ui/alert.tsx",
+      "sha256": "f253568242c1c69b343f12474002fdbe229f603158171c59e21c491ab79f2e6e"
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "sha256": "59953420d01d23d172b4e32583426db153ff09226e2d460d53526b9f25282801"
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "sha256": "08e5f87833c5db8436e89337ebde0f776bcdbf649d3de69fb89be6441ca2e366"
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "sha256": "8ad3a18d36bda0598dc0e9aa96ea22854944d5443ee4946f1d173815e115375f"
+    },
+    {
+      "path": "src/components/ui/checkbox.tsx",
+      "sha256": "822b3036f883e950fe76cf78ac2710cbbca4512e7012c03c346845b7710bd232"
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "sha256": "7dbb00eeb1b68a7403c6a326904aa5d1e0d40edbea6f34c8460aadc48c8b56b1"
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "sha256": "75418e030b2a54dd017ac0f4588db4bbdbabca7525e88bbc9d84cb3e18bcb905"
+    },
+    {
+      "path": "src/components/ui/label.tsx",
+      "sha256": "b823de7355666bd6a6a2cf88a6630e436d021b38fdbef5b749fac0921b86f44d"
+    },
+    {
+      "path": "src/components/ui/select.tsx",
+      "sha256": "d0ea3b62332be501636ac37920eb457afa5201e57a9f090eb1fc8effe14d7fc3"
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "sha256": "42aa6209fe9bec178e4009cf042c16f7e8730bfc4edbc0c39972c1f0482e7d19"
+    },
+    {
+      "path": "src/components/ui/sheet.tsx",
+      "sha256": "9af6a0da7258746624346506c3ff98c9e300ceb10ef17ca079a1c8c5d5090814"
+    },
+    {
+      "path": "src/components/ui/sidebar.tsx",
+      "sha256": "67f7d7e97d70feb5de0f32d38cd3548c57e1912167ef48a65bf1bd722c267208"
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "sha256": "4c2af7fa9c645358a0fb188779deab6f0b981733b62befc25e18aaebea1350dc"
+    },
+    {
+      "path": "src/components/ui/sonner.tsx",
+      "sha256": "2dd975ad2170ba2570b00e58713dcbda90f26a7fffdaceb1ef7255f450c2d2a6"
+    },
+    {
+      "path": "src/components/ui/table.tsx",
+      "sha256": "300dc171ff0e09543dce0787f43a3ceb0d168fa800eaecb98b6c5630f3c6d7e9"
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "sha256": "b977274550595594055d850a16775c75761765e1cd76b4827e101c2f432762df"
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "sha256": "82601c91ffc6c727d924162c78d7cb853114bcced4e2eb922a68ca12d4239c0f"
+    },
+    {
+      "path": "src/components/ui/tooltip.tsx",
+      "sha256": "e94530dd6877132d5eda73f6fb0d217f345477232f140f2ca6e024d790177f6a"
+    }
+  ],
+  "adaptations": [
+    "Application-specific CSS theme variables; original component implementations retained.",
+    "Generated use-mobile hook uses React useSyncExternalStore to satisfy current React lint rules."
+  ],
+  "validation_commands": [
+    "npm run build",
+    "npm run lint",
+    "npm test"
+  ],
+  "test_scope": "Six offline checks of the API client, money totals, and approval guards. Browser QA is recorded separately."
+}

@@ -1,0 +1,48 @@
+{
+  "environment": "paypal_sandbox",
+  "browser": "Ego on primary Mac mini",
+  "interface": "Initial HTML UI; preserved checkpoint before shadcn replacement",
+  "case_id": "3af2df4b-e8e5-4436-ba97-a9d8a38ab7f9",
+  "capture_id": "25J813138X454894W",
+  "refund_id": "28N89369LF5830902",
+  "amount_minor": 3900,
+  "currency": "USD",
+  "approval_kind": "test_operator",
+  "status": "verified",
+  "paypal_status": "COMPLETED",
+  "capture_status_after_refund": "REFUNDED",
+  "actual_model": {
+    "model": "qwen3:4b",
+    "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "endpoint": "http://127.0.0.1:11434",
+    "runtime_version": "0.16.2",
+    "runtime": {
+      "model": "qwen3:4b",
+      "created_at": "2026-10-02T08:16:54.241080446Z",
+      "done": true,
+      "done_reason": "stop",
+      "total_duration": 46226665034,
+      "load_duration": 1988781211,
+      "prompt_eval_count": 385,
+      "prompt_eval_duration": 26231451574,
+      "eval_count": 116,
+      "eval_duration": 17163392888
+    },
+    "thinking_present": false,
+    "requested_num_threads": 4,
+    "elapsed_seconds": 46.471,
+    "deadline_seconds": 90,
+    "model_request_attempted": true,
+    "completed_model_response": true
+  },
+  "review_status": "REVIEW_READY",
+  "recommendation": "refund",
+  "policy_citations": [
+    {
+      "id": "P1",
+      "quote": "A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused."
+    }
+  ],
+  "refund_submission_claims": 1,
+  "raw_evidence_sha256": "71e2e45b6ecac69dd76004a68a763baf37e5863d5545875f3dda8d413e391e68"
+}

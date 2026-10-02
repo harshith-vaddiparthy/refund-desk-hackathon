@@ -1,0 +1,62 @@
+{
+  "environment": "paypal_sandbox",
+  "observed_at": "2026-10-02T07:54:47.875795+00:00",
+  "approval_kind": "test_operator",
+  "approval_actor": "Jarvis authorized sandbox QA",
+  "merchant_ui_test": false,
+  "order_id": "2R223942807333256",
+  "capture_id": "76446936A4428564C",
+  "refund_id": "86V34840X4212841M",
+  "amount_minor": 3900,
+  "currency": "USD",
+  "buyer_approval": "Actual sandbox buyer browser approval",
+  "capture_verification": {
+    "status": "COMPLETED",
+    "merchant_matched": true,
+    "order_matched": true
+  },
+  "ai": {
+    "runtime": "local Ollama",
+    "model": "qwen3:4b",
+    "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "elapsed_seconds": 49.088,
+    "status": "REVIEW_READY",
+    "recommendation": "refund",
+    "response": {
+      "recommendation": "refund",
+      "rationale": "P1 applies: request within 30 days (2026-10-02 purchase, 2026-10-02 request), item unused (item_used: false).",
+      "citations": [
+        {
+          "id": "P1",
+          "quote": "A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused."
+        }
+      ],
+      "missing_information": []
+    },
+    "physical_goods_evidence": "Synthetic unused-item claim supplied by test operator"
+  },
+  "refund_post_http": 201,
+  "refund_readback": {
+    "http": 200,
+    "status": "COMPLETED",
+    "amount_matches": true,
+    "capture_association_matches": true
+  },
+  "duplicate_prevention": {
+    "application_second_claim": false,
+    "provider_same_request_id_replay_http": 200,
+    "same_refund_id": true,
+    "capture_status_after_replay": "REFUNDED",
+    "total_refunded_amount": {
+      "currency_code": "USD",
+      "value": "39.00"
+    }
+  },
+  "raw_evidence_sha256": "c6668c4831377c0cbf47b8c60e0b2652562c3babef930eeee79a2e600b1e7a59",
+  "limitations": [
+    "One real sandbox refund; no live money or production readiness claim.",
+    "Approval performed by test operator, not a personal merchant click.",
+    "Local model observation does not establish general reliability or latency.",
+    "Raw API receipts and private configuration are excluded from source control."
+  ]
+}

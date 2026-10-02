@@ -1,0 +1,68 @@
+{
+  "environment": "paypal_sandbox",
+  "interface": "Official shadcn React dashboard",
+  "cli_version": "4.21.1",
+  "browser": "Ego on primary Mac mini",
+  "case_id": "a44011da-3309-4b7c-9f7f-d8167b100440",
+  "capture_id": "35045355PG785913J",
+  "refund_id": "00K11021V5076505G",
+  "amount_minor": 3900,
+  "currency": "USD",
+  "approval_kind": "test_operator",
+  "status": "verified",
+  "paypal_status": "COMPLETED",
+  "capture_status_after_refund": "REFUNDED",
+  "actual_model": {
+    "model": "qwen3:4b",
+    "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "endpoint": "http://127.0.0.1:11434",
+    "runtime_version": "0.16.2",
+    "runtime": {
+      "model": "qwen3:4b",
+      "created_at": "2026-10-02T08:49:50.024879663Z",
+      "done": true,
+      "done_reason": "stop",
+      "total_duration": 45825095806,
+      "load_duration": 2219080467,
+      "prompt_eval_count": 384,
+      "prompt_eval_duration": 25537847794,
+      "eval_count": 116,
+      "eval_duration": 17222702998
+    },
+    "thinking_present": false,
+    "requested_num_threads": 4,
+    "elapsed_seconds": 46.078,
+    "deadline_seconds": 90,
+    "model_request_attempted": true,
+    "completed_model_response": true
+  },
+  "review_status": "REVIEW_READY",
+  "recommendation": "refund",
+  "policy_citations": [
+    {
+      "id": "P1",
+      "quote": "A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused."
+    }
+  ],
+  "approval_checkbox_initially_required": true,
+  "refund_submission_claims": 1,
+  "duplicate_claimed": false,
+  "dashboard_after_refund": {
+    "cases": 2,
+    "verified_refunds": 2,
+    "verified_refunded_minor": 7800
+  },
+  "browser_checks": [
+    "Overview and real saved totals",
+    "Policy from authenticated API",
+    "Search and status filters",
+    "New request blocked while item condition unknown",
+    "Escape closes dialog and restores trigger focus",
+    "Mobile navigation and no page overflow at390px",
+    "Fresh local model review",
+    "Exact amount approval checkbox and test-operator attribution",
+    "Independent sandbox refundGET",
+    "Persisted prior case survives application restart"
+  ],
+  "raw_evidence_sha256": "fe360d95a6e264b219b928057c43099349484d7d051126c2581e3ddf3a12a94a"
+}

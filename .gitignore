@@ -1,0 +1,7 @@
+__pycache__/
+evidence/
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
