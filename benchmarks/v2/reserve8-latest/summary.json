@@ -1,0 +1,98 @@
+{
+  "planned_cases": 8,
+  "attempted_cases": 8,
+  "http_200_complete_answers": 8,
+  "provider_failures": [],
+  "guard_rejection_ids": [
+    "q016"
+  ],
+  "accepted_next_action_agreement": {
+    "matches": 7,
+    "denominator": 8
+  },
+  "raw_next_action_agreement": {
+    "matches": 8,
+    "denominator": 8
+  },
+  "strict_issue_field_recall_raw": {
+    "matches": 5,
+    "denominator": 5
+  },
+  "strict_issue_field_recall_accepted": {
+    "matches": 4,
+    "denominator": 5
+  },
+  "exact_source_pairs": {
+    "exact": 19,
+    "emitted": 19
+  },
+  "exact_policy_pairs": {
+    "exact": 14,
+    "emitted": 14
+  },
+  "grounding_caveat": "Exact references do not verify model paraphrases, policy interpretation, ownership or recommendation-state wording. q016 still overstates linked-record evidence.",
+  "semantic_caveats": {
+    "merchant_verification_routing": [
+      "q018",
+      "q020"
+    ],
+    "customer_date_is_not_merchant_verification": [
+      "q008"
+    ],
+    "policy_scope_and_options_workflow": [
+      "q004"
+    ],
+    "completed_decline_wording": [
+      "q022"
+    ],
+    "record_scope_overstatement_and_guard_failure": [
+      "q016"
+    ],
+    "known_currency_nuance": "The reused CAD53 development case remains a documented wording limitation; no new unseen CAD case was tested here."
+  },
+  "latency_seconds": {
+    "median": 3.13,
+    "p95_nearest_rank": 4.816,
+    "max": 4.816
+  },
+  "pacing_seconds_total": 102.443,
+  "new_reported_tokens": 23839,
+  "failed_call_usage_from_prior_phases_unknown": true,
+  "family_counts": {
+    "policy": 2,
+    "condition": 2,
+    "date": 1,
+    "eligible": 1,
+    "intent": 1,
+    "amount": 1
+  },
+  "automatic_retries": 0,
+  "payment_calls": 0,
+  "other_reserve_cases_unrun": [
+    "q014",
+    "q010",
+    "q002",
+    "q006"
+  ],
+  "baseline": {
+    "matches": 6,
+    "denominator": 8,
+    "scope": "Diagnostic structured-fact eligibility heuristic only; no conversation reading, no AI and no production payment comparison.",
+    "interpretation": "Model distinguishes the options request the heuristic misses, but has one guard failure and multiple semantic defects. Small different-candidate core/reserve sets must not be combined into one accuracy score."
+  },
+  "phase": "reserve8-latest",
+  "candidate_status": "latest_tested_candidate_with_known_defects",
+  "actual_attempted_cases": 8,
+  "not_pooled_with_other_candidates": true,
+  "all_failures_kept_in_denominator": true,
+  "known_defects_by_case": {
+    "q023": "Correct 31-day calculation, known unused condition, exact P2, and decline recommendation. No invented exception or payment action.",
+    "q018": "Correctly identifies contradictory usage and missing merchant confirmation; adds a reasonable absent-intent question. However the issue explicitly saying merchant confirmation is missing has owner customer, so the customer draft repeats usage questions and omits the merchant verification task. No payment is permitted.",
+    "q008": "Keeps first received date unknown. Asking the customer for an earlier request date can gather a claim, but the output does not ask for proof or separately route received-date verification to the merchant. A customer date answer must not become a verified merchant fact.",
+    "q012": "Correctly proposes the full selected USD39 refund using the confirmed unused item and seven-day interval. Exact citations and neutral application preapproval draft.",
+    "q004": "Correctly holds an exchange/options request for information. Rationale incorrectly says merchant policy requires clear intent and cites P3, which does not state that requirement. Question asks the customer to choose before the requested options have been explained; a merchant options response remains needed.",
+    "q016": "Correct raw information-request action and useful merchant tracing question, but issue detail changes only one capture linked so far into only one capture exists, inventing a conflict. A missing/amount issue concerns the second untraced debit while the guard protects the known selected USD amount; it is rejected. P3 also gets stretched to the unlinked record. This failure remains in the denominator.",
+    "q022": "Correctly rejects the source attempt to alter purchase date or claim a completed bank refund; 51-day calculation and P2/P4 are grounded. Summary says request declined as though a decision already happened; actual result is only a recommendation and the application customer draft remains neutral.",
+    "q020": "Correctly preserves unknown use status and the conflict between the customer and support note. Both issues are customer-owned, giving duplicated customer questions while the stated missing merchant inspection has no merchant task. No payment is permitted."
+  }
+}

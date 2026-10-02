@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, BadgeCheck, CircleHelp, FileText, History, LayoutDashboard, LoaderCircle, LockKeyhole, ReceiptText, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, FileText, History, LayoutDashboard, LoaderCircle, LockKeyhole, ReceiptText, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -12,9 +12,9 @@ import { Toaster } from '@/components/ui/sonner'
 import { CaseDetail } from '@/components/case-detail'
 import { NewRequestDialog } from '@/components/new-request-dialog'
 import { ActivityList, RequestTable } from '@/components/request-table'
-import { ApiError, approveCase, createCase, getCase, getPolicy, initializeSession, listCases, refreshCase, reviewCase } from '@/lib/api'
+import { ApiError, approveCase, createCase, getCase, getPolicy, initializeSession, listCases, refreshCase, resolveCase, reviewCase } from '@/lib/api'
 import { money, snapshotMatches, totals } from '@/lib/refunds'
-import type { ApprovalSnapshot, NewRequest, Policy, RefundCase, Session } from '@/types'
+import type { ApprovalSnapshot, CaseResolution, NewRequest, Policy, RefundCase, Session } from '@/types'
 
 type Page = 'overview' | 'requests' | 'policy' | 'activity'
 const navigation = [
@@ -34,10 +34,11 @@ export default function Dashboard() {
   const [records, setRecords] = useState<RefundCase[]>([])
   const [policy, setPolicy] = useState<Policy | null>(null)
   const [selected, setSelected] = useState<RefundCase | null>(null)
-  const [page, setPage] = useState<Page>('overview')
+  const [page, setPage] = useState<Page>('requests')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
+  const [reviewStartedAt, setReviewStartedAt] = useState<number | null>(null)
   const [blocked, setBlocked] = useState<Set<string>>(new Set())
   const busyRef = useRef(false)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -81,7 +82,7 @@ export default function Dashboard() {
 
   function reload() {
     void perform('Reloading saved workspace records…', async () => {
-      const [result, currentPolicy] = await Promise.all([listCases(), getPolicy()]); setRecords(result.cases); setPolicy(currentPolicy.policy)
+      const [result, currentPolicy, currentSession] = await Promise.all([listCases(), getPolicy(), initializeSession()]); setRecords(result.cases); setPolicy(currentPolicy.policy); setSession(currentSession)
       if (selected) {
         const refreshed = await getCase(selected.id); setSelected(refreshed.case); replaceRecord(refreshed.case)
         setBlocked(current => { const next = new Set(current); next.delete(selected.id); return next })
@@ -105,25 +106,46 @@ export default function Dashboard() {
     }, snapshot.caseId)
   }
 
+  async function analyze() {
+    if (!selected || busyRef.current) return
+    if (!session?.ai_runtime) { setError('Reload the workspace to confirm the AI provider before analysis.'); return }
+    setReviewStartedAt(Date.now())
+    try {
+      await perform('Analyzing the saved conversation…', async () => {
+        const result = await reviewCase(selected.id); replaceRecord(result.case)
+        const status = result.case.latest_review?.status
+        toast.info(status === 'REVIEW_NEEDS_INFORMATION' ? 'Analysis complete. Resolve the open questions to continue.' : status === 'REVIEW_READY' ? 'Analysis saved. Review the evidence and recommendation.' : 'Analysis incomplete. Inspect the validation result.')
+      }, selected.id)
+    } finally { setReviewStartedAt(null) }
+  }
+
+  async function resolve(resolution: CaseResolution) {
+    if (!selected || blocked.has(selected.id)) return false
+    return perform('Saving the updated case revision…', async () => {
+      const result = await resolveCase(selected.id, resolution); replaceRecord(result.case)
+      toast.success(result.case.case_version === resolution.expected_version ? 'No changes to the saved revision.' : 'Revision saved. Analyze the updated conversation to continue.')
+    }, selected.id)
+  }
+
   const metrics = totals(records)
   const pageTitle = navigation.find(item => item.id === page)!.label
   return <SidebarProvider><a href="#dashboard-content" className="sr-only z-50 rounded bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3">Skip to workspace</a><WorkspaceSidebar page={page} onNavigate={next => { setPage(next); setSelected(null) }} busy={Boolean(busy)} count={records.length} /><SidebarInset className="min-w-0 bg-[#f7f9fb]">
-    <header className="flex min-h-16 shrink-0 items-center justify-between gap-3 border-b bg-background px-4 md:px-7"><div className="flex min-w-0 items-center gap-3"><SidebarTrigger aria-label="Toggle navigation" /><Separator orientation="vertical" className="h-4!" /><span className="truncate text-sm text-muted-foreground">Workspace<span className="mx-2 text-border">/</span><span className="font-medium text-foreground">{pageTitle}</span></span></div><div className="flex shrink-0 items-center gap-2"><Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800">Sandbox</Badge>{session?.approval_mode === 'test_operator' && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-900">Test operator</Badge>}<span className="hidden text-xs text-muted-foreground lg:block">Local session</span></div></header>
+    <header className="flex min-h-16 shrink-0 items-center justify-between gap-3 border-b bg-background px-4 md:px-7"><div className="flex min-w-0 items-center gap-3"><SidebarTrigger aria-label="Toggle navigation" /><Separator orientation="vertical" className="h-4!" /><span className="truncate text-sm text-muted-foreground">Workspace<span className="mx-2 text-border">/</span><span className="font-medium text-foreground">{pageTitle}</span></span></div><div className="flex shrink-0 items-center gap-2"><Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800">Sandbox</Badge>{session?.approval_mode === 'test_operator' && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-900">Test operator</Badge>}<span className="hidden text-xs text-muted-foreground lg:block">Private session</span></div></header>
     <div id="dashboard-content" ref={contentRef} tabIndex={-1} className="mx-auto w-full max-w-[1500px] space-y-6 p-4 outline-none md:p-7 lg:p-9" aria-busy={Boolean(busy) || loading}>
-      {busy && <Alert className="border-blue-200 bg-blue-50 text-blue-950"><LoaderCircle className="animate-spin" /><AlertTitle>Operation in progress</AlertTitle><AlertDescription className="text-blue-900" role="status">{busy}</AlertDescription></Alert>}
+      {busy && reviewStartedAt === null && <Alert className="border-blue-200 bg-blue-50 text-blue-950"><LoaderCircle className="animate-spin" /><AlertTitle>Operation in progress</AlertTitle><AlertDescription className="text-blue-900" role="status">{busy}</AlertDescription></Alert>}
       {error && session && <Alert variant="destructive"><TriangleAlert /><AlertTitle>Action needs attention</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
       {loading ? <div className="space-y-6"><Skeleton className="h-9 w-52" /><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[0, 1, 2, 3].map(item => <Skeleton key={item} className="h-32 rounded-xl" />)}</div><Skeleton className="h-80 rounded-xl" /></div> : !session ? <Card className="mx-auto mt-14 max-w-lg"><CardHeader><LockKeyhole className="mb-3 size-8 text-muted-foreground" aria-hidden /><CardTitle>Open your private session</CardTitle><CardDescription>The server saves a private launch URL in <code className="text-xs">browser-session.json</code> inside your data directory.</CardDescription></CardHeader><CardContent><p className="text-sm leading-relaxed text-muted-foreground">Open the latest link after a server restart. It grants access to this local sandbox workspace.</p>{error && <Alert variant="destructive" className="mt-5"><AlertDescription>{error}</AlertDescription></Alert>}</CardContent></Card> : <>
-        {selected && page === 'requests' ? <CaseDetail key={selected.id} record={selected} session={session} busy={Boolean(busy)} blocked={blocked.has(selected.id)} onBack={() => setSelected(null)} onReload={reload}
-          onReview={() => { void perform('Assessing the saved policy and payment with local AI. No refund is being submitted…', async () => { const result = await reviewCase(selected.id); replaceRecord(result.case); toast.info(result.case.latest_review?.status === 'REVIEW_READY' ? 'Assessment saved for review.' : 'Assessment incomplete. Inspect the validation results.') }) }}
+        {selected && page === 'requests' ? <CaseDetail key={`${selected.id}-${selected.case_version}`} record={selected} session={session} busy={Boolean(busy)} blocked={blocked.has(selected.id)} reviewStartedAt={reviewStartedAt} onBack={() => setSelected(null)} onReload={reload}
+          onReview={() => { void analyze() }} onResolve={resolve}
           onApprove={approve} onRefresh={() => { void perform('Reading the existing refund from PayPal sandbox. No new refund is submitted…', async () => { const result = await refreshCase(selected.id); replaceRecord(result.case); toast.info('Status check finished. Inspect the saved refund outcome.') }) }} /> : <>
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h1 className="text-2xl font-semibold tracking-tight">{page === 'overview' ? 'Refund overview' : pageTitle}</h1><p className="mt-1.5 text-sm text-muted-foreground">{page === 'overview' ? 'A clear view of your requests, decisions, and verified results.' : page === 'requests' ? 'Assess each request against payment evidence and merchant policy.' : page === 'policy' ? 'The active server policy and its exact decision clauses.' : 'An append-only record of what happened across this workspace.'}</p></div><div className="flex items-center gap-2"><Button variant="outline" size="icon" aria-label="Reload workspace records" onClick={reload} disabled={Boolean(busy)}><RefreshCw className="size-4" aria-hidden /></Button>{['overview', 'requests'].includes(page) && <NewRequestDialog busy={Boolean(busy)} onCreate={newRequest} />}</div></div>
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h1 className="text-2xl font-semibold tracking-tight">{page === 'overview' ? 'Refund overview' : pageTitle}</h1><p className="mt-1.5 text-sm text-muted-foreground">{page === 'overview' ? 'A clear view of your requests, decisions, and verified results.' : page === 'requests' ? 'Turn customer conversations into sourced decisions and clear next steps.' : page === 'policy' ? 'The active server policy and its exact decision clauses.' : 'An append-only record of what happened across this workspace.'}</p></div><div className="flex items-center gap-2"><Button variant="outline" size="icon" aria-label="Reload workspace records" onClick={reload} disabled={Boolean(busy)}><RefreshCw className="size-4" aria-hidden /></Button>{['overview', 'requests'].includes(page) && <NewRequestDialog busy={Boolean(busy)} onCreate={newRequest} />}</div></div>
           {page === 'overview' && <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{[
-              { title: 'Total requests', value: String(metrics.total), description: 'Saved in this workspace', icon: ReceiptText },
-              { title: 'Needs assessment', value: String(metrics.toReview), description: 'Ready for an AI review', icon: CircleHelp },
-              { title: 'Verified refunds', value: money(metrics.refundedMinor), description: `${metrics.verified} independently verified sandbox refund${metrics.verified === 1 ? '' : 's'}`, icon: BadgeCheck },
-              { title: 'Needs attention', value: String(metrics.attention), description: 'Incomplete or unresolved outcomes', icon: TriangleAlert },
-            ].map(metric => <Card key={metric.title} className="gap-3 py-5"><CardHeader className="flex flex-row items-center justify-between gap-3 px-5"><CardDescription className="text-xs font-medium">{metric.title}</CardDescription><metric.icon className="size-4 text-muted-foreground/70" aria-hidden /></CardHeader><CardContent className="px-5"><p className="text-3xl font-semibold tracking-tight tabular-nums">{metric.value}</p><p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{metric.description}</p></CardContent></Card>)}</div>
+            <dl className="grid divide-y rounded-xl border bg-background sm:grid-cols-2 sm:divide-y-0 xl:grid-cols-4">{[
+              { title: 'Needs analysis', value: String(metrics.toReview), description: 'Unanalyzed or incomplete requests' },
+              { title: 'Needs information', value: String(records.filter(record => record.state === 'needs_information').length), description: 'Questions ready for merchant resolution' },
+              { title: 'Ready for approval', value: String(records.filter(record => record.can_approve).length), description: 'Review evidence before deciding' },
+              { title: 'Verified refunds', value: money(metrics.refundedMinor), description: `${metrics.verified} independently verified sandbox operations` },
+            ].map(metric => <div key={metric.title} className="px-5 py-5"><dt className="text-xs font-medium text-muted-foreground">{metric.title}</dt><dd className="mt-2 text-xl font-semibold tabular-nums">{metric.value}</dd><p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{metric.description}</p></div>)}</dl>
             <div className="grid items-start gap-6 2xl:grid-cols-[minmax(0,1fr)_340px]"><Card className="min-w-0 gap-0 overflow-hidden py-0"><CardHeader className="flex flex-row items-center justify-between border-b px-5 py-5"><div><CardTitle>Recent requests</CardTitle><CardDescription className="mt-1">Review the latest saved cases.</CardDescription></div><Button variant="ghost" size="sm" onClick={() => setPage('requests')} disabled={Boolean(busy)}>View all<ArrowUpRight className="size-3.5" aria-hidden /></Button></CardHeader><RequestTable records={records.slice(0, 6)} busy={Boolean(busy)} onOpen={openRecord} searchable={false} /></Card><Card className="gap-0 overflow-hidden py-0"><CardHeader className="border-b px-5 py-5"><CardTitle>Recent activity</CardTitle><CardDescription>Actual saved events.</CardDescription></CardHeader><ActivityList records={records} limit={4} /></Card></div>
             <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><ShieldCheck className="size-4 shrink-0" aria-hidden />Refund totals include only independently verified PayPal sandbox operations in this workspace. Pending operations and synthetic test evidence are excluded.</p>
           </>}

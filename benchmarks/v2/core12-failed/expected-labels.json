@@ -1,0 +1,158 @@
+[
+  {
+    "id": "q017",
+    "family": "condition",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "item_used",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q003",
+    "family": "intent",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "intent",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q009",
+    "family": "eligible",
+    "stage": "core",
+    "expected_next_action": "refund",
+    "required_issue_field": null,
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q021",
+    "family": "policy",
+    "stage": "core",
+    "expected_next_action": "decline",
+    "required_issue_field": null,
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q015",
+    "family": "amount",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "amount",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q007",
+    "family": "date",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "request_date",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q013",
+    "family": "amount",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "amount",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q005",
+    "family": "date",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "request_date",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q011",
+    "family": "eligible",
+    "stage": "core",
+    "expected_next_action": "refund",
+    "required_issue_field": null,
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q024",
+    "family": "policy",
+    "stage": "core",
+    "expected_next_action": "refund",
+    "required_issue_field": null,
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q019",
+    "family": "condition",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "item_used",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  },
+  {
+    "id": "q001",
+    "family": "intent",
+    "stage": "core",
+    "expected_next_action": "request_information",
+    "required_issue_field": "intent",
+    "requirements": [
+      "Exact source and policy pairing",
+      "No claim that missing merchant date is confirmed",
+      "No invented payment completion or processing promise",
+      "Conditional or paused intent does not become immediate refund approval"
+    ]
+  }
+]

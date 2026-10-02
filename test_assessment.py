@@ -6,6 +6,8 @@ from pathlib import Path
 import unittest
 
 from assessment import REQUIRED_FACTS, assess
+from evidence import schema_for
+from test_evidence import full_answer
 
 
 class AssessmentTests(unittest.TestCase):
@@ -17,7 +19,7 @@ class AssessmentTests(unittest.TestCase):
         self.policy = deepcopy(self.benchmark["policy"])
         self.version = self.policy["version"]
         self.case = deepcopy(self.benchmark["cases"][0]["input"])
-        self.answer = deepcopy(self.benchmark["cases"][0]["answer"])
+        self.answer = full_answer(self.case, self.policy)
 
     def evaluate(self):
         return assess(self.case, self.policy, self.answer, policy_version=self.version)
@@ -28,7 +30,8 @@ class AssessmentTests(unittest.TestCase):
         self.assertFalse(result["payment_authorized"])
         self.assertTrue(result["errors"])
 
-    def test_retained_model_failure_stays_visible_and_other_cases_pass_guards(self):
+    def test_retained_v1_answers_are_preserved_without_inventing_v2_evidence(self):
+        self.assertEqual(sum(bool(c["passed"]) for c in self.benchmark["cases"]), 3)
         for case in self.benchmark["cases"]:
             with self.subTest(case=case["id"]):
                 original = deepcopy(case["answer"])
@@ -41,8 +44,8 @@ class AssessmentTests(unittest.TestCase):
                     self.assertEqual(result["missing_verified_facts"], ["purchase_date", "item_used"])
                     self.assertIn("contradictory_recommendation", {error["code"] for error in result["errors"]})
                 else:
-                    self.assertEqual(result["status"], "REVIEW_READY", result)
-                    self.assertEqual(result["accepted_recommendation"], original["recommendation"])
+                    self.assert_incomplete(result)
+                    self.assertIn("invalid_model_response", {error["code"] for error in result["errors"]})
 
     def test_false_is_a_present_fact_and_ready_advice_does_not_authorize_payment(self):
         result = self.evaluate()
@@ -51,6 +54,19 @@ class AssessmentTests(unittest.TestCase):
         self.assertEqual(result["accepted_recommendation"], "refund")
         self.assertFalse(result["payment_authorized"])
         self.assertTrue(result["human_approval_required_for_payment"])
+
+    def test_observed_209_character_rationale_fits_but_oversized_text_is_rejected(self):
+        # Synthetic text reproduces the measured failure shape; no failed-generation prose is retained.
+        for length, expected in ((209, "REVIEW_READY"), (1024, "REVIEW_READY"), (1025, "REVIEW_INCOMPLETE")):
+            with self.subTest(length=length):
+                self.answer["rationale"] = "r" * length
+                result = self.evaluate()
+                self.assertEqual(result["status"], expected)
+                self.assertFalse(result["payment_authorized"])
+                if length > 1024:
+                    self.assertIn(("invalid_model_response", "rationale"),
+                                  {(error["code"], error["field"]) for error in result["errors"]})
+        self.assertEqual(schema_for(self.case, self.policy)["properties"]["rationale"]["maxLength"], 1024)
 
     def test_missing_required_facts_block_refund_and_decline(self):
         for field in REQUIRED_FACTS:

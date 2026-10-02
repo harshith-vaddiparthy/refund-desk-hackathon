@@ -1,4 +1,4 @@
-import type { NewRequest, Policy, RefundCase, Session } from '@/types'
+import type { CaseResolution, NewRequest, Policy, RefundCase, Session } from '@/types'
 
 let sessionToken: string | null = null
 let csrfToken: string | null = null
@@ -41,13 +41,21 @@ export async function initializeSession(): Promise<Session> {
   sessionToken = session.session_token
   csrfToken = session.csrf_token
   try { sessionStorage.setItem('refund-desk-session', sessionToken) } catch { /* Keep the session in memory. */ }
-  return { environment: session.environment, approval_mode: session.approval_mode }
+  const runtime = session.ai_runtime
+  const knownRuntime = runtime && typeof runtime.model === 'string' && runtime.model.trim()
+    && ((runtime.provider === 'groq' && runtime.location === 'hosted') || (runtime.provider === 'ollama' && runtime.location === 'local')
+      || (runtime.provider === 'test' && runtime.location === 'test'))
+  return { environment: session.environment, approval_mode: session.approval_mode, ai_runtime: knownRuntime ? runtime : undefined }
 }
 
 export const listCases = () => request<{ cases: RefundCase[] }>('/api/cases')
 export const getPolicy = () => request<{ policy: Policy }>('/api/policy')
 export const getCase = (id: string) => request<{ case: RefundCase }>(`/api/cases/${encodeURIComponent(id)}`)
 export const createCase = (body: NewRequest) => request<{ case: RefundCase }>('/api/cases', body)
+export const resolveCase = (id: string, body: CaseResolution) => request<{ case: RefundCase }>(`/api/cases/${encodeURIComponent(id)}/resolve`, {
+  expected_version: body.expected_version, customer_message: body.customer_message, item_used: body.item_used,
+  request_date: body.request_date, resolution_note: body.resolution_note,
+})
 export const reviewCase = (id: string) => request<{ case: RefundCase }>(`/api/cases/${encodeURIComponent(id)}/review`, {})
 export const approveCase = (id: string, reviewHash: string) => request<{ case: RefundCase }>(`/api/cases/${encodeURIComponent(id)}/approve`, { review_hash: reviewHash, confirmed: true })
 export const refreshCase = (id: string) => request<{ case: RefundCase }>(`/api/cases/${encodeURIComponent(id)}/refresh`, {})

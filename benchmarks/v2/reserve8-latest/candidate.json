@@ -1,0 +1,49 @@
+{
+  "source_files_sha256": {
+    "evidence.py": "227f824883f0d834dec75b2303eee751303e796adbe7f10340cde82616ac6391",
+    "local_model.py": "721d435773ffe14050cbf146caa9cdafb7cf3abcb7b362d59a93893c8ac2003b",
+    "groq_model.py": "336fea789cfe4159a49533fd817d49aab399e5d0b309a4862aa103aa84faab3d",
+    "review.py": "1e3db6c732217835d4afbb80e5c8c3428e1f6b7e4b2ba81c5ae250b2bd310464",
+    "assessment.py": "a9e554f4a973cfac0e817f82dd7874fd466726eac4717a424826275ff6850ed4",
+    "model_config.py": "516d268ab05abde7979da39a0789502cdeded44b507886b564846fa79ece3ec7"
+  },
+  "original_inputs_sha256": "4aeb9b9e56934a303ce1327700ec5c634e0f648f8cb49067a9b7ab3d5cf10c1b",
+  "original_labels_sha256": "31432cc9bde4b56bb6219d2ea91ce704e134c876b2d9e53153bd226f397817f3",
+  "original_freeze_sha256": "beeefd1c5dcfb46f954333ebdc2329bc4e281bd05aa20c96da15b2c7f88ef4aa",
+  "settings": {
+    "model": "openai/gpt-oss-120b",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 2500,
+    "temperature": 0,
+    "include_reasoning": false,
+    "stream": false,
+    "limits": {
+      "summary": 512,
+      "rationale": 1024,
+      "detail": 512,
+      "question": 512,
+      "claims": 12,
+      "issues": 6
+    },
+    "strict_schema": true
+  },
+  "case_order": [
+    "q023",
+    "q018",
+    "q008",
+    "q012",
+    "q004",
+    "q016",
+    "q022",
+    "q020"
+  ],
+  "selection_before_outcomes": true,
+  "source_identity_note": "Hashes identify the tested model modules; they are not a claim that a private commit is available publicly.",
+  "selection_method": "First reserved item per family in frozen reserve_order, then next unused items in the same order; chosen before any reserve output.",
+  "unrun_reserved_ids": [
+    "q014",
+    "q010",
+    "q002",
+    "q006"
+  ]
+}

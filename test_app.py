@@ -12,7 +12,7 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from app import FrontendBuildError, MAX_ASSET_BYTES, ReviewServer, main, save_session
+from app import FrontendBuildError, Handler, MAX_ASSET_BYTES, ReviewServer, main, save_session
 from service import ServiceError
 
 
@@ -20,6 +20,7 @@ class FakeService:
     def __init__(self):
         self.calls = []
         self.policy = {"version": "fixture-policy-v1", "clauses": {"P1": "Read-only test policy."}}
+        self.ai_runtime = {"provider": "ollama", "model": "qwen3:4b", "location": "local"}
         self.failure = None
         self.block_review = False
         self.review_started = threading.Event()
@@ -51,6 +52,12 @@ class FakeService:
     def refresh(self, case_id):
         self.calls.append(("refresh", case_id))
         return self.get_case(case_id)
+
+    def resolve_case(self, case_id, **resolution):
+        if self.failure:
+            raise self.failure
+        self.calls.append(("resolve", case_id, resolution))
+        return {"id": case_id, "case_version": "b" * 64, "latest_review": None}
 
 
 class AppBoundaryTests(unittest.TestCase):
@@ -115,6 +122,25 @@ class AppBoundaryTests(unittest.TestCase):
         self.assertEqual(self.request("POST", "/api/policy", {"policy": returned})[0], 404)
         self.assertEqual(self.service.calls, [])
 
+    def test_ai_descriptor_is_available_before_analysis_without_private_configuration(self):
+        self.service.ai_runtime = {"provider": "groq", "model": "openai/gpt-oss-120b", "location": "hosted",
+                                   "api_key": "PRIVATE_AI_KEY_SENTINEL", "client_file": "/PRIVATE_CLIENT_FILE.json",
+                                   "merchant_email": "private-merchant@example.test"}
+        self.assertEqual(self.request("GET", "/api/session")[0], 401)
+        self.login()
+        status, _, body = self.request("GET", "/api/session")
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["ai_runtime"],
+                         {"provider": "groq", "model": "openai/gpt-oss-120b", "location": "hosted"})
+        for private in (b"PRIVATE_AI_KEY_SENTINEL", b"PRIVATE_CLIENT_FILE", b"private-merchant@example.test"):
+            self.assertNotIn(private, body)
+        self.assertEqual(self.service.calls, [])
+        facts = {"capture_id": "SYNTHETIC001", "customer_message": "Refund request", "item_used": None, "request_date": None}
+        self.assertEqual(self.request("POST", "/api/cases", dict(facts, ai_provider="groq"))[0], 400)
+        self.assertEqual(self.request("POST", "/api/cases/offline-case/resolve",
+                                      {"expected_version": "a" * 64, "groq_client_file": "private.json"})[0], 400)
+        self.assertEqual(self.service.calls, [])
+
     def test_bootstrap_and_mutations_reject_cross_site_and_wrong_csrf(self):
         self.assertEqual(self.request("POST", "/api/session", {}, {
             "Origin": "https://outside.invalid", "X-Refund-Desk-Bootstrap": self.server.bootstrap_token})[0], 403)
@@ -161,11 +187,80 @@ class AppBoundaryTests(unittest.TestCase):
         self.assertEqual(self.request("POST", "/api/cases/offline-case/approve", valid)[0], 200)
         self.assertEqual(self.service.calls, [("approve", "offline-case", "a" * 64)])
 
+    def test_unknown_merchant_facts_are_preserved_at_intake(self):
+        self.login()
+        facts = {"capture_id": "SYNTHETIC001", "customer_message": "Customer: I want a refund.\n\nSupport: Was it used?",
+                 "item_used": None, "request_date": None}
+        status, _, body = self.request("POST", "/api/cases", facts)
+        self.assertEqual(status, 201)
+        self.assertIsNone(json.loads(body)["case"]["item_used"])
+        self.assertIsNone(json.loads(body)["case"]["request_date"])
+        self.assertEqual(self.service.calls, [("create", facts)])
+
+    def test_resolve_is_authenticated_versioned_and_rejects_money_or_authority(self):
+        path = "/api/cases/offline-case/resolve"
+        payload = {"expected_version": "a" * 64, "item_used": False, "resolution_note": "Merchant inspected the returned item."}
+        self.assertEqual(self.request("POST", path, payload)[0], 401)
+        self.login()
+        self.assertEqual(self.request("POST", path, payload, {"X-Refund-Desk-CSRF": "wrong"})[0], 403)
+        for extra in ({"amount_minor": 1}, {"currency": "USD"}, {"merchant_id": "wrong"},
+                      {"sources": []}, {"approval_kind": "human_ui"}, {"transaction_provenance": "paypal_sandbox"}):
+            with self.subTest(extra=extra):
+                self.assertEqual(self.request("POST", path, dict(payload, **extra))[0], 400)
+        for invalid in ({"item_used": True}, dict(payload, expected_version="old"),
+                        dict(payload, item_used=0), dict(payload, request_date=False),
+                        dict(payload, customer_message=None), dict(payload, resolution_note=["test"])):
+            with self.subTest(payload=invalid):
+                self.assertEqual(self.request("POST", path, invalid)[0], 400)
+        self.assertEqual(self.service.calls, [])
+        self.assertEqual(self.request("POST", path, payload)[0], 200)
+        self.assertEqual(self.service.calls, [("resolve", "offline-case", payload)])
+        # Omission remains omission; explicit null is passed to the service.
+        unknown = {"expected_version": "b" * 64, "request_date": None, "resolution_note": "Received date is not established."}
+        self.assertEqual(self.request("POST", path, unknown)[0], 200)
+        self.assertEqual(self.service.calls[-1], ("resolve", "offline-case", unknown))
+        self.service.failure = ServiceError("stale_case", "The current version changed.")
+        status, _, body = self.request("POST", path, payload)
+        self.assertEqual(status, 409)
+        self.assertEqual(json.loads(body)["error"]["code"], "stale_case")
+        self.assertEqual(self.request("GET", path)[0], 404)
+
     def test_readback_route_cannot_submit_or_change_approval(self):
         self.login()
         self.assertEqual(self.request("POST", "/api/cases/offline-case/refresh", {"retry": True})[0], 400)
         self.assertEqual(self.request("POST", "/api/cases/offline-case/refresh", {})[0], 200)
         self.assertEqual(self.service.calls, [("refresh", "offline-case")])
+
+    def test_a_completed_http_response_does_not_leave_the_previous_mutation_busy(self):
+        self.login()
+        path = "/api/cases/offline-case/refresh"
+        for first_payload, first_status in (({"retry": True}, 400), ({}, 200)):
+            with self.subTest(status=first_status):
+                claimed, sent, release = threading.Event(), threading.Event(), threading.Event()
+                original_reply = Handler.reply
+
+                def delayed_tail(handler, status, body, *args, **kwargs):
+                    first = handler.path == path and status == first_status and not claimed.is_set()
+                    if first:
+                        claimed.set()
+                    original_reply(handler, status, body, *args, **kwargs)
+                    if first:
+                        sent.set()
+                        release.wait(3)
+
+                responses = []
+                with patch.object(Handler, "reply", delayed_tail):
+                    first = threading.Thread(target=lambda: responses.append(self.request("POST", path, first_payload)))
+                    first.start()
+                    try:
+                        self.assertTrue(sent.wait(2))
+                        # The first handler is deliberately still alive after
+                        # sending its response. Its completed action is not busy.
+                        self.assertEqual(self.request("POST", path, {})[0], 200)
+                    finally:
+                        release.set()
+                        first.join(3)
+                self.assertEqual(responses[0][0], first_status)
 
     def test_one_active_mutation_keeps_reads_available(self):
         self.login()
@@ -356,12 +451,13 @@ class FrontendAssetTests(unittest.TestCase):
                      "--data-dir", str(Path(self.temporary.name) / "cli-data")]
         with patch("app.DEFAULT_FRONTEND_DIR", self.root), \
                 patch("paypal.PayPalClient.from_file", return_value=object()), \
-                patch("service.RefundService", return_value=self.service), \
+                patch("service.RefundService", return_value=self.service) as configured, \
                 patch("app.ReviewServer", wraps=ReviewServer) as server, \
                 patch.object(ReviewServer, "serve_forever", return_value=None), \
                 redirect_stdout(io.StringIO()):
             main(arguments)
         self.assertEqual(server.call_args.kwargs["frontend_dir"], self.root)
+        self.assertEqual(configured.call_args.kwargs["runtime"].public_descriptor()["provider"], "ollama")
         error_output = io.StringIO()
         with patch("app.DEFAULT_FRONTEND_DIR", Path(self.temporary.name) / "missing-default"), \
                 patch("paypal.PayPalClient.from_file") as credentials, \
@@ -370,6 +466,51 @@ class FrontendAssetTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 1)
         self.assertIn("npm run build", error_output.getvalue())
         credentials.assert_not_called()
+
+    def test_cli_groq_is_explicit_and_passes_only_a_configured_runtime_to_service(self):
+        arguments = ["--client-file", "unused-paypal.json", "--merchant-id", "TESTMERCHANT",
+                     "--merchant-email", "merchant@example.test", "--port", "0",
+                     "--data-dir", str(Path(self.temporary.name) / "groq-cli-data"),
+                     "--ai-provider", "groq", "--groq-client-file", "private-groq.json"]
+        runtime = object()  # Test-only factory return; no credentials or provider request.
+        with patch("app.DEFAULT_FRONTEND_DIR", self.root), \
+                patch("model_config.select_runtime", return_value=runtime) as select, \
+                patch("paypal.PayPalClient.from_file", return_value=object()), \
+                patch("service.RefundService", return_value=self.service) as configured, \
+                patch.object(ReviewServer, "serve_forever", return_value=None), \
+                redirect_stdout(io.StringIO()):
+            main(arguments)
+        select.assert_called_once_with("groq", Path("private-groq.json"))
+        self.assertIs(configured.call_args.kwargs["runtime"], runtime)
+
+    def test_cli_rejects_implicit_or_arbitrary_provider_before_reading_configuration(self):
+        arguments = ["--client-file", "unused-paypal.json", "--merchant-id", "TESTMERCHANT",
+                     "--merchant-email", "merchant@example.test"]
+        for options in (["--ai-provider", "arbitrary"], ["--ai-provider", "groq"],
+                        ["--groq-client-file", "private-groq.json"]):
+            with self.subTest(options=options), patch("model_config.select_runtime") as select, \
+                    patch("paypal.PayPalClient.from_file") as payment_credentials, \
+                    redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as caught:
+                main(arguments + options)
+            self.assertEqual(caught.exception.code, 2)
+            select.assert_not_called()
+            payment_credentials.assert_not_called()
+
+    def test_bad_groq_configuration_does_not_fall_back_or_expose_private_error(self):
+        arguments = ["--client-file", "unused-paypal.json", "--merchant-id", "TESTMERCHANT",
+                     "--merchant-email", "merchant@example.test", "--ai-provider", "groq",
+                     "--groq-client-file", "private-groq.json"]
+        error = io.StringIO()
+        with patch("app.DEFAULT_FRONTEND_DIR", self.root), \
+                patch("model_config.select_runtime", side_effect=ValueError("PRIVATE_AI_KEY_SENTINEL")) as select, \
+                patch("paypal.PayPalClient.from_file") as payment_credentials, \
+                redirect_stderr(error), self.assertRaises(SystemExit) as caught:
+            main(arguments)
+        self.assertEqual(caught.exception.code, 1)
+        self.assertNotIn("PRIVATE_AI_KEY_SENTINEL", error.getvalue())
+        self.assertIn("AI runtime configuration is invalid", error.getvalue())
+        select.assert_called_once()
+        payment_credentials.assert_not_called()
 
     def test_compiled_frontend_keeps_api_auth_csrf_and_stateless_callback(self):
         self.assertEqual(self.request("GET", "/api/cases")[0], 401)

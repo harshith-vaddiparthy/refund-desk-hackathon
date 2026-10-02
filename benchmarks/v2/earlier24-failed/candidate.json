@@ -1,0 +1,22 @@
+{
+  "source_files_sha256": {
+    "local_model.py": "7da0cc18c1765c6c74a1d179fb6393c6ad85839c44a9e7f16f2e364085aac615",
+    "evidence.py": "8d80d0983608d3e0f7d6798479c0debd4ec69f9dfe3e07e11d9c9062b84f5c3e",
+    "review.py": "f4a8dad4474414893f0421b379e443858f51ea9cf11af6a6a4ede769f72c9980",
+    "assessment.py": "6596548d5c55ef6ee4943cdf7fe5e4d830a7a0cde9ac6df7cefed096bcf16f8f",
+    "groq_model.py": "76b15fc48d2d34d81ee7ca58ba1c2cebb1d3fdadfb9c214303d93a184e60b051",
+    "model_config.py": "516d268ab05abde7979da39a0789502cdeded44b507886b564846fa79ece3ec7"
+  },
+  "settings": {
+    "model": "openai/gpt-oss-120b",
+    "stream": false,
+    "include_reasoning": false,
+    "reasoning_effort": "low",
+    "temperature": 0,
+    "max_completion_tokens": 2500
+  },
+  "original_full_inputs_sha256": "9caff82bce01241c9c1589db8b44582e54c3eede2016a82afa972d98654def2b",
+  "original_full_labels_sha256": "387eb948f8d9e26ee73549d636c0777dfd531e52d1f48bfbcfa5ca66408c3d95",
+  "original_freeze_sha256": "2c69b3c89e992de9c0916b34af11462f90760190e21ad4663cd1c79196ff4eda",
+  "source_identity_note": "File hashes identify tested source; no private commit is presented as a public source revision."
+}

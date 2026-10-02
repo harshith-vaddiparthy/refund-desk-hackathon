@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { approveCase, initializeSession, refreshCase } from '../src/lib/api.ts'
+import { approveCase, createCase, initializeSession, refreshCase, resolveCase } from '../src/lib/api.ts'
 
 test('browser client sends only bound approval data and uses header auth without cookies', async () => {
   const requests: { path: string; options: RequestInit }[] = []
@@ -12,11 +12,12 @@ test('browser client sends only bound approval data and uses header auth without
   globalThis.fetch = async (input, options = {}) => {
     requests.push({ path: String(input), options })
     return new Response(JSON.stringify(String(input) === '/api/session'
-      ? { environment: 'sandbox', approval_mode: 'test_operator', session_token: 'synthetic-session', csrf_token: 'synthetic-csrf' }
+      ? { environment: 'sandbox', approval_mode: 'test_operator', session_token: 'synthetic-session', csrf_token: 'synthetic-csrf', ai_runtime: { provider: 'groq', model: 'openai/gpt-oss-120b', location: 'hosted' } }
       : { case: { id: 'synthetic-case' } }), { status: 200, headers: { 'Content-Type': 'application/json' } })
   }
   try {
-    await initializeSession()
+    const session = await initializeSession()
+    assert.deepEqual(session.ai_runtime, { provider: 'groq', model: 'openai/gpt-oss-120b', location: 'hosted' })
     await approveCase('synthetic-case', 'a'.repeat(64))
     await refreshCase('synthetic-case')
     assert.equal(requests.length, 3)
@@ -35,4 +36,21 @@ test('interrupted approval is not retried by the browser client', async () => {
   globalThis.fetch = async () => { calls++; throw new TypeError('Synthetic disconnect') }
   try { await assert.rejects(approveCase('synthetic-case', 'a'.repeat(64)), /Connection interrupted/); assert.equal(calls, 1) }
   finally { globalThis.fetch = original }
+})
+
+test('intake preserves unknown facts and resolution sends only version-bound editable fields', async () => {
+  const requests: { path: string; options: RequestInit }[] = []
+  const original = globalThis.fetch
+  globalThis.fetch = async (input, options = {}) => {
+    requests.push({ path: String(input), options })
+    return new Response(JSON.stringify({ case: { id: 'synthetic-case' } }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+  }
+  try {
+    await createCase({ capture_id: 'SYNTHETIC', customer_message: 'Unclear conversation', item_used: null, request_date: null })
+    const resolution = { expected_version: 'revision-1', customer_message: 'Updated conversation', item_used: null, request_date: null, resolution_note: 'Awaiting merchant confirmation', amount_minor: 1 }
+    await resolveCase('synthetic/case', resolution)
+    assert.deepEqual(JSON.parse(String(requests[0].options.body)), { capture_id: 'SYNTHETIC', customer_message: 'Unclear conversation', item_used: null, request_date: null })
+    assert.equal(requests[1].path, '/api/cases/synthetic%2Fcase/resolve')
+    assert.deepEqual(JSON.parse(String(requests[1].options.body)), { expected_version: 'revision-1', customer_message: 'Updated conversation', item_used: null, request_date: null, resolution_note: 'Awaiting merchant confirmation' })
+  } finally { globalThis.fetch = original }
 })

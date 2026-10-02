@@ -12,13 +12,12 @@ from unittest.mock import Mock, patch
 
 from benchmarks.local_ai import CASES, DIGEST, MODEL, POLICY
 import local_model
-from review import main, review_case
+from review import main, parse_model_output, review_case, _strict_json
+from test_evidence import full_answer
 
 
 def good_answer():
-    return {"recommendation": "refund", "rationale": "Eligible under P1.",
-            "citations": [{"id": "P1", "quote": POLICY["clauses"]["P1"]}],
-            "missing_information": []}
+    return full_answer()
 
 
 def fixture_result(answer=None):
@@ -29,6 +28,16 @@ def fixture_result(answer=None):
 
 
 class ReviewFlowTests(unittest.TestCase):
+    def test_identical_duplicates_are_model_only_and_conflicts_remain_invalid(self):
+        value, metadata = parse_model_output('{"source_ids":["M1","M2"],"source_ids":["M1","M2"]}')
+        self.assertEqual(value, {"source_ids": ["M1", "M2"]})
+        self.assertEqual(metadata["identical_duplicate_count"], 1)
+        self.assertTrue(metadata["warnings"])
+        for raw in ('{"x":true,"x":1}', '{"x":["M1","M2"],"x":["M2","M1"]}',
+                    '{"x":{"a":1},"x":{"a":2}}', '{"x":NaN}', '{"x":1e999}'):
+            with self.subTest(raw=raw), self.assertRaises(ValueError): parse_model_output(raw)
+        with self.assertRaises(ValueError): _strict_json('{"x":1,"x":1}')
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="refund-desk-review-test-")
         self.addCleanup(self.temporary.cleanup)
@@ -40,7 +49,7 @@ class ReviewFlowTests(unittest.TestCase):
         return review_case(self.case, self.policy, facts_provenance=options.get("provenance", "synthetic"),
                            output_dir=self.output, generator=generator)
 
-    def test_missing_facts_and_invalid_policy_stop_before_any_model_invocation(self):
+    def test_missing_payment_facts_and_invalid_policy_stop_before_any_model_invocation(self):
         for case, policy in ((CASES[2]["input"], POLICY), (self.case, {"version": "v1", "clauses": {}})):
             with self.subTest(case=case, policy=policy), tempfile.TemporaryDirectory() as temporary:
                 generator = Mock()
@@ -52,6 +61,24 @@ class ReviewFlowTests(unittest.TestCase):
                 self.assertEqual(report["model_calls"], 0)
                 self.assertIsNone(report["model_response_text"])
                 self.assertFalse(report["preflight"]["valid"])
+
+    def test_unknown_merchant_facts_reach_analysis_and_complete_as_nonpayable_information_request(self):
+        self.case["verified_transaction"].update(item_used=None, request_date=None)
+        answer = full_answer(self.case)
+        answer.update(recommendation="request_information", missing_information=["item_used", "request_date"],
+            citations=[{"id": "P3", "quote": POLICY["clauses"]["P3"]}],
+            issues=[{"kind": "missing", "field": field, "source_ids": [], "owner": "merchant",
+                     "detail": "A merchant confirmation is missing.", "question": f"Can the merchant confirm {field}?"}
+                    for field in ("item_used", "request_date")])
+        generator = Mock(return_value=fixture_result(answer))
+        report = self.run_review(generator)
+        generator.assert_called_once()
+        self.assertEqual(report["status"], "REVIEW_NEEDS_INFORMATION", report)
+        self.assertEqual(report["evidence"]["validation_status"], "valid")
+        self.assertEqual(report["runtime_provenance"], "injected_test_generator")
+        self.assertEqual(report["model_calls"], 0)
+        self.assertFalse(report["payment_authorized"])
+        self.assertIsNone(report["case"]["verified_transaction"]["item_used"])
 
     def test_provider_answer_reaches_guards_with_explicit_test_provenance(self):
         generator = Mock(return_value=fixture_result())
@@ -129,6 +156,17 @@ class ReviewFlowTests(unittest.TestCase):
 
 
 class LocalModelBoundaryTests(unittest.TestCase):
+    def test_unrelated_loaded_model_prevents_a_chat_attempt(self):
+        responses = {"/api/tags": {"models": [{"name": MODEL, "digest": DIGEST}]},
+                     "/api/ps": {"models": [{"name": "unrelated-embedding-model"}]}}
+        with patch("local_model.local_request", side_effect=lambda path, *a, **kw: responses[path]) as request:
+            with patch("sys.stdin", io.StringIO(json.dumps({"case": CASES[0]["input"], "policy": POLICY}))):
+                output = io.StringIO()
+                with redirect_stdout(output): local_model._worker()
+        self.assertEqual([call.args[0] for call in request.call_args_list], ["/api/tags", "/api/ps"])
+        self.assertNotIn('"event": "model_request_attempted"', output.getvalue())
+        self.assertIn("runtime is busy", output.getvalue())
+
     def test_metadata_and_request_execute_only_inside_bounded_child(self):
         output = (json.dumps({"event": "model_request_attempted"}) + "\n" +
                   json.dumps({"event": "result", "result": fixture_result()}) + "\n").encode()
@@ -136,7 +174,7 @@ class LocalModelBoundaryTests(unittest.TestCase):
             run.return_value = subprocess.CompletedProcess([], 0, output, b"")
             result = local_model.generate(CASES[0]["input"], POLICY)
         request.assert_not_called()
-        self.assertEqual(run.call_args.kwargs["timeout"], 90)
+        self.assertEqual(run.call_args.kwargs["timeout"], 180)
         self.assertEqual(set(run.call_args.kwargs["env"]), {"PATH", "LANG"})
         inputs = json.loads(run.call_args.kwargs["input"])
         self.assertEqual(set(inputs["case"]), {"verified_transaction", "customer_message"})
@@ -176,9 +214,13 @@ class LocalModelBoundaryTests(unittest.TestCase):
             self.assertEqual(path, "/api/chat")
             self.assertEqual(payload["model"], MODEL)
             self.assertEqual(payload["keep_alive"], "0s")
-            self.assertEqual(payload["options"]["num_thread"], 4)
+            self.assertEqual(payload["options"]["num_thread"], 8)
             self.assertFalse(payload["think"])
-            self.assertEqual(json.loads(payload["messages"][-1]["content"]), CASES[0]["input"])
+            context = json.loads(payload["messages"][-1]["content"])
+            self.assertEqual(context["elapsed_days"], 20)
+            self.assertEqual(context["unknown_merchant_fields"], [])
+            self.assertNotIn("capture_id", context["paypal_facts"])
+            self.assertNotIn("expected", context)
             return {"model": MODEL, "done": True, "done_reason": "stop",
                     "message": {"content": json.dumps(good_answer()), "thinking": "hidden marker"},
                     "prompt_eval_count": 100, "eval_count": 60}

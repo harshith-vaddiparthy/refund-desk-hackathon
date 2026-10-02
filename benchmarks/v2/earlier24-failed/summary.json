@@ -1,0 +1,119 @@
+{
+  "phase": "earlier_24_case_evaluation",
+  "candidate_status": "failed_candidate_retained",
+  "candidate": "source-selection",
+  "attempted": 24,
+  "automatic_metrics": {
+    "heldout_attempts": 24,
+    "attempts_per_case": 1,
+    "automatic_retries": 0,
+    "http200": 23,
+    "guard_accepted": 23,
+    "decision_matches_gold": 20,
+    "baseline_matches_gold": 18,
+    "source_quote_pairs": {
+      "valid": 42,
+      "emitted_in_parseable_answers": 42
+    },
+    "policy_citation_pairs": {
+      "valid": 43,
+      "emitted_in_parseable_answers": 43
+    },
+    "required_issue_recall": {
+      "matched": 11,
+      "expected": 16
+    },
+    "required_claim_kind_recall": {
+      "matched": 19,
+      "expected": 28
+    },
+    "required_missing_field_recall": {
+      "matched": 8,
+      "expected": 14
+    },
+    "identical_duplicate_cases": 1,
+    "identical_duplicate_keys": 1,
+    "latency_all_attempts": {
+      "count": 24,
+      "median_seconds": 1.702,
+      "p95_nearest_rank_seconds": 2.224,
+      "max_seconds": 2.836
+    },
+    "latency_http200": {
+      "count": 23,
+      "median_seconds": 1.725,
+      "p95_nearest_rank_seconds": 2.224,
+      "max_seconds": 2.836
+    },
+    "pacing_total_seconds": 221.317,
+    "reported_tokens_on_http200": 44700,
+    "baseline_scope": "Only the fixed structured-fact eligibility rule; not the full v1 product or a human review-time benchmark.",
+    "metric_scope": "Small synthetic set. Source/quote checks are enforced by construction and validation; semantic correctness requires separate inspection. Missing field/kind/issue metrics follow the unchanged pre-frozen labels."
+  },
+  "assistant_semantic_counts": {
+    "acceptable_with_limits": 18,
+    "material_failure": 5,
+    "requires_product_judgment": 1
+  },
+  "material_failures": [
+    {
+      "case_id": "heldout-missing_date-2",
+      "grade": "material_failure",
+      "note": "Summary asserts request is within30days although request date is unknown; draft promotes claimed call timing.",
+      "raw_receipt_sha256": "437a233a9cada8bb83555adb7638ada947462d34c8b369fa7d828a0de30874bf",
+      "http_status": 200,
+      "automatic_status": "REVIEW_NEEDS_INFORMATION",
+      "latency_seconds": 1.725
+    },
+    {
+      "case_id": "heldout-policy_intent-1",
+      "grade": "material_failure",
+      "note": "Declines rather than clarifying mixed replacement/cancellation intent; draft simultaneously asks to confirm replacement.",
+      "raw_receipt_sha256": "21cc3034bd746254336d7c3126935a2b8e0095fdb4f8f29696586be7c69c9eb1",
+      "http_status": 200,
+      "automatic_status": "REVIEW_READY",
+      "latency_seconds": 2.154
+    },
+    {
+      "case_id": "heldout-policy_intent-3",
+      "grade": "material_failure",
+      "note": "Recommends refund despite refund request conditional on unavailable blue stock; stock has not been checked.",
+      "raw_receipt_sha256": "c1162af5fe6f28df5e294319d29148c60b32cfefe29807b49b4d447899ec3a7e",
+      "http_status": 200,
+      "automatic_status": "REVIEW_READY",
+      "latency_seconds": 1.876
+    },
+    {
+      "case_id": "heldout-policy_intent-4",
+      "grade": "material_failure",
+      "note": "HTTP400 json_validate_failed; no usable result.",
+      "raw_receipt_sha256": "856b6a8781e40565400767dd82944e0f8f0bc9876be278e0a88331757e8d19e8",
+      "http_status": 400,
+      "automatic_status": null,
+      "latency_seconds": 1.636
+    },
+    {
+      "case_id": "heldout-resolved-3",
+      "grade": "material_failure",
+      "note": "Draft asks customer to allow time to process refund before any approval.",
+      "raw_receipt_sha256": "ef919bfb2bcae274d0d0a2ec57dcf102b0eac8cb0bf19dcc1028e2c2a7afb15a",
+      "http_status": 200,
+      "automatic_status": "REVIEW_READY",
+      "latency_seconds": 1.679
+    }
+  ],
+  "judgment_cases": [
+    {
+      "case_id": "heldout-amount-4",
+      "grade": "requires_product_judgment",
+      "note": "Eligible39purchase and separate20compensation request are distinguished; recommending39refund before resolving full requested outcome merits a separate intent check. Do not silently count this as an unequivocal pass.",
+      "raw_receipt_sha256": "0fe3ac7fe6a039aa6802107fbe714e221fd74320f5a7613c6791b71583661286",
+      "http_status": 200,
+      "automatic_status": "REVIEW_READY",
+      "latency_seconds": 2.179
+    }
+  ],
+  "not_pooled_with_later_candidates": true,
+  "failures_not_replaced_by_reruns": true,
+  "historical_model_generated_customer_drafts": "Retained as failure evidence; current application composes drafts separately."
+}
