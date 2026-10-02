@@ -19,10 +19,13 @@ completed two immutable case revisions, two actual Groq reviews and one exact
 USD39 refund with independent readback. This is the fifth distinct USD39
 sandbox refund in the project, including four earlier v1 proofs.
 
-[Demo and submitted entry](https://devpost.com/software/refund-desk). V2
-publication and the updated video/entry are still pending; that page currently
-contains the submitted v1 presentation. The verified v2 behavior and its
-remaining evaluation limits are documented below and in the
+[Watch the two-minute narrated demo](https://www.youtube.com/watch?v=Iv_8JoJnSHs) ·
+[PayPal AI Hackathon entry](https://devpost.com/software/refund-desk).
+The video shows the actual application and sandbox workflow, with synthetic
+conversation/merchant observations and test-operator approval. Navigation and
+typing time are edited; the two visible model waits and approval/submission
+motion retain their original speed. The verified behavior and remaining
+limits are documented below and in the
 [inspectable evidence pack](benchmarks/v2/README.md).
 
 ## Requirements and source
@@ -52,10 +55,6 @@ python3 --version
 node --version
 npm --version
 ```
-
-Until v2 is released, public main remains the submitted v1. The v2 instructions
-below apply to this isolated revision; cloning public main is not evidence that
-v2 has been published.
 
 On Ubuntu 24.04/Debian 12 or newer, install missing Python/Git as a user setup step:
 
