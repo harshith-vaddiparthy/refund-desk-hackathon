@@ -1,0 +1,41 @@
+{
+  "created_at": "2026-10-02T22:42:59.203010+00:00",
+  "title": "Refund Desk v2 evidence pack",
+  "phases": [
+    {
+      "directory": "earlier24-failed",
+      "cases": 24,
+      "status": "earlier failed candidate"
+    },
+    {
+      "directory": "core12-failed",
+      "cases": 12,
+      "status": "later failed candidate"
+    },
+    {
+      "directory": "reserve8-latest",
+      "cases": 8,
+      "status": "latest evaluated candidate with known defects"
+    }
+  ],
+  "results_are_not_pooled": true,
+  "unrun_reserved_cases": [
+    "q010",
+    "q014",
+    "q002",
+    "q006"
+  ],
+  "sandbox_workflow": "sandbox-workflow.json",
+  "cumulative_reported_model_tokens_at_rehearsal": 191204,
+  "failed_request_token_usage_unknown": true,
+  "no_merchant_pilot": true,
+  "no_win_probability_claim": true,
+  "sanitization": "Only saved synthetic packets, final answer text, safe metrics, source hashes and sandbox proof fields. No credentials, private paths or reasoning text.",
+  "publication_status": "Prepared evidence; this file does not assert an external publication action.",
+  "development_examples": {
+    "directory": "development-reused3",
+    "cases": 3,
+    "fresh": false,
+    "excluded_from_fresh_metrics": true
+  }
+}

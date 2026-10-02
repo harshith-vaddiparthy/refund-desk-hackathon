@@ -1,0 +1,39 @@
+{
+  "source_files_sha256": {
+    "evidence.py": "e0b9509916ac018ec7db9dc427152f34b41373f31199f14d79cbb9488e5f3613",
+    "local_model.py": "9c64a3ead32b6551360e49034f4cea580f07fb79fbbeee9188f2c321f953df52",
+    "groq_model.py": "336fea789cfe4159a49533fd817d49aab399e5d0b309a4862aa103aa84faab3d",
+    "review.py": "1e3db6c732217835d4afbb80e5c8c3428e1f6b7e4b2ba81c5ae250b2bd310464",
+    "assessment.py": "42af33e08e5116b2963b2e5d7abd9d6a309251d025892197262d756c44deb23a",
+    "model_config.py": "516d268ab05abde7979da39a0789502cdeded44b507886b564846fa79ece3ec7"
+  },
+  "original_inputs_sha256": "4aeb9b9e56934a303ce1327700ec5c634e0f648f8cb49067a9b7ab3d5cf10c1b",
+  "original_labels_sha256": "31432cc9bde4b56bb6219d2ea91ce704e134c876b2d9e53153bd226f397817f3",
+  "original_freeze_sha256": "8a5ccfdcf32d6573c3d37d3f871c963acff758e04dbe4cb1b8cc030c9b5984d3",
+  "settings": {
+    "model": "openai/gpt-oss-120b",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 2500,
+    "temperature": 0,
+    "include_reasoning": false,
+    "stream": false,
+    "rationale_max_length": 400,
+    "strict_schema": true
+  },
+  "case_order": [
+    "q017",
+    "q003",
+    "q009",
+    "q021",
+    "q015",
+    "q007",
+    "q013",
+    "q005",
+    "q011",
+    "q024",
+    "q019",
+    "q001"
+  ],
+  "selection_before_outcomes": true,
+  "source_identity_note": "Hashes identify the tested model modules; they are not a claim that a private commit is available publicly."
+}

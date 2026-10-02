@@ -1,0 +1,17 @@
+{
+  "phase": "reused_development_regressions",
+  "not_fresh_evaluation": true,
+  "case_ids": [
+    "q009",
+    "q015",
+    "q024"
+  ],
+  "attempts": 3,
+  "complete_http200": 3,
+  "guard_accepted": 3,
+  "next_action_matches": 3,
+  "known_case_results_do_not_replace_prior_failures": true,
+  "currency_limitation": "q015 improves materially but retains currency-equivalence wording limits. These known-case improvements do not replace or repair the failed fresh core12 score.",
+  "new_reported_tokens": 8611,
+  "latency_median_seconds": 3.245
+}

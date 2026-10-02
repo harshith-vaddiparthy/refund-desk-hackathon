@@ -1,0 +1,170 @@
+{
+  "assembled_at": "2026-10-02T22:22:43.414167+00:00",
+  "independent_readback_saved_at": "2026-10-02T22:21:20.743704+00:00",
+  "environment": "paypal_sandbox",
+  "approval_kind": "test_operator",
+  "approved_at": "2026-10-02T22:18:19.785953+00:00",
+  "capture_id": "4CP15886LP9883220",
+  "refund_id": "0DY277976X017934B",
+  "refund_status": "COMPLETED",
+  "capture_status": "REFUNDED",
+  "amount_minor": 3900,
+  "currency": "USD",
+  "independent_refund_http": 200,
+  "independent_capture_http": 200,
+  "counts": {
+    "cases": 1,
+    "case_revisions": 2,
+    "reviews": 2,
+    "approvals": 1,
+    "operations": 1,
+    "submission_claims": 1
+  },
+  "approved_snapshot": {
+    "amount_minor": 3900,
+    "capture_id": "4CP15886LP9883220",
+    "case_version": "772d9e329d5a3c87436ebaa8ba504350785a155fa6cf8fcb10ae1b255108081f",
+    "currency": "USD",
+    "policy_version": "synthetic-refund-policy-2026-10-02.v1",
+    "review_hash": "816b95b75f3cabe82cb22e944158f948e2edf62c24c2327d4c601586db67d38c"
+  },
+  "payment_events": [
+    {
+      "kind": "approved",
+      "from_state": null,
+      "to_state": "prepared",
+      "occurred_at": "2026-10-02T22:18:19.786352+00:00"
+    },
+    {
+      "kind": "submission_claimed",
+      "from_state": "prepared",
+      "to_state": "submitting",
+      "occurred_at": "2026-10-02T22:18:19.817403+00:00"
+    },
+    {
+      "kind": "submission_received",
+      "from_state": "submitting",
+      "to_state": "pending",
+      "occurred_at": "2026-10-02T22:18:21.556593+00:00"
+    },
+    {
+      "kind": "refund_readback",
+      "from_state": "pending",
+      "to_state": "verified",
+      "occurred_at": "2026-10-02T22:18:21.969018+00:00"
+    }
+  ],
+  "actual_model_calls": 2,
+  "model_latencies_seconds": [
+    4.297,
+    4.79
+  ],
+  "model_reported_tokens": 7619,
+  "automatic_payment_retry": false,
+  "scenario": "Synthetic conversation and merchant confirmations; actual PayPal sandbox and hosted-model calls.",
+  "evidence_type": "actual_sandbox_workflow_rehearsal",
+  "sandbox_refund_sequence_in_project": 5,
+  "approval_actor": "Authorized test operator; not a customer or merchant pilot",
+  "facts_scope": "Conversation, item condition and merchant confirmations are synthetic. PayPal sandbox API requests and hosted-model requests are actual.",
+  "model": {
+    "provider": "Groq",
+    "model": "openai/gpt-oss-120b",
+    "reasoning_effort": "medium",
+    "max_completion_tokens": 2500,
+    "include_reasoning": false
+  },
+  "source_files_sha256": {
+    "evidence.py": "227f824883f0d834dec75b2303eee751303e796adbe7f10340cde82616ac6391",
+    "local_model.py": "721d435773ffe14050cbf146caa9cdafb7cf3abcb7b362d59a93893c8ac2003b",
+    "review.py": "1e3db6c732217835d4afbb80e5c8c3428e1f6b7e4b2ba81c5ae250b2bd310464",
+    "groq_model.py": "336fea789cfe4159a49533fd817d49aab399e5d0b309a4862aa103aa84faab3d",
+    "service.py": "530215c67958656a3088c3434177450e9a7943af24525b3c4b48c38fdab5148e",
+    "app.py": "aef5c6af61bf31d83660aa68153e64ecfa743bf722f5464cedead5ae531b685d",
+    "sandbox_capture.py": "dc009a9211fe40d6effef9fc7382f4cb7d3813147fdc31e89c21fdec866cadd3",
+    "model_config.py": "516d268ab05abde7979da39a0789502cdeded44b507886b564846fa79ece3ec7",
+    "payment_state.py": "f655fa8231f166674d119482b2d844c33836da52aa2c4c6678fc959a14364586",
+    "assessment.py": "a9e554f4a973cfac0e817f82dd7874fd466726eac4717a424826275ff6850ed4",
+    "paypal.py": "4c8b07d69b045abd150d81623f51ed783996f42192040f6b1f3d5c98024c2138",
+    "benchmarks/__init__.py": "6d4eb5bec5427a1bbe54a76b5cfa5564f4fbe7a0e1a0df08930d027552400bd5",
+    "benchmarks/local_ai.py": "4f5d1038c5fce29c04add224fe1a38379baf8670166116b58d866ebbd1bab454"
+  },
+  "original_proof_sha256": "65b53de2e1f030c5faefb0e35394a2e777ec52f046891deb22fa3282031898b5",
+  "original_first_review_verification_sha256": "4220809002c5a62e3f5457abc2b457df63f8dc14f9f53310b72a02c2accde5fa",
+  "original_second_review_verification_sha256": "8bc202cb812d73997bd6643509b70e7d161a160f14819f483c6f02978ffd6d70",
+  "review_stages": [
+    {
+      "status": "REVIEW_NEEDS_INFORMATION",
+      "review_hash": "0e68f706faa2f2584deeaa7ccdbe0ae71fe232256352300d344765aa973b7a6f",
+      "case_version": "175a2248e0b7e5f3bc082d8748313c6439167f3828fb6a590886ccb408b83d41",
+      "latency_seconds": 4.297,
+      "usage": {
+        "queue_time": 0.252104696,
+        "prompt_tokens": 1764,
+        "prompt_time": 0.091008286,
+        "completion_tokens": 1786,
+        "completion_time": 3.7150973880000002,
+        "total_tokens": 3550,
+        "total_time": 3.806105674,
+        "reasoning_tokens": 1333
+      },
+      "issues": [
+        {
+          "kind": "conflict",
+          "field": "item_used",
+          "source_ids": [
+            "M1",
+            "M2"
+          ],
+          "detail": "The customer says the headphones are still factory‑sealed (unused) in M1, but later says they tried them yesterday (used) in M2.",
+          "question": "Did you actually use the headphones, or were they unopened when you requested the refund?",
+          "owner": "customer",
+          "id": "I1"
+        },
+        {
+          "kind": "missing",
+          "field": "request_date",
+          "source_ids": [
+            "M1",
+            "M2"
+          ],
+          "detail": "The date the refund request was submitted is not provided in any source.",
+          "question": "On what date did you submit your refund request?",
+          "owner": "customer",
+          "id": "I2"
+        }
+      ],
+      "draft": "Before a merchant decision, please clarify:\n- Did you actually use the headphones, or were they unopened when you requested the refund?\n- On what date did you submit your refund request?",
+      "draft_source": "application_template",
+      "operation_count": 0,
+      "stage": "before_resolution"
+    },
+    {
+      "status": "REVIEW_READY",
+      "recommendation": "refund",
+      "review_hash": "816b95b75f3cabe82cb22e944158f948e2edf62c24c2327d4c601586db67d38c",
+      "case_version": "772d9e329d5a3c87436ebaa8ba504350785a155fa6cf8fcb10ae1b255108081f",
+      "latency_seconds": 4.79,
+      "usage": {
+        "queue_time": 0.089647826,
+        "prompt_tokens": 1971,
+        "prompt_time": 0.102302531,
+        "completion_tokens": 2098,
+        "completion_time": 4.386551626,
+        "total_tokens": 4069,
+        "total_time": 4.4888541570000005,
+        "reasoning_tokens": 1612
+      },
+      "issues": [],
+      "merchant_facts": {
+        "item_used": false,
+        "request_date": "2026-10-02"
+      },
+      "resolution_note": "Synthetic demo resolution: inspected the returned unit and confirmed its factory seal is intact. Customer clarified that the used pair belongs to another order and confirmed $39 for this capture. Request received on 2 October 2026.",
+      "operation_count": 0,
+      "stage": "after_merchant_resolution"
+    }
+  ],
+  "customer_statements_do_not_verify_merchant_facts": true,
+  "real_money_moved": false,
+  "interpretation": "One sandbox workflow succeeded. It does not prove production reliability, bank settlement, model accuracy, or duplicate prevention under every possible race."
+}

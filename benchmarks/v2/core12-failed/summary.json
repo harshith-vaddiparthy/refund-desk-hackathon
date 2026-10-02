@@ -1,0 +1,80 @@
+{
+  "planned_cases": 12,
+  "attempted_cases": 12,
+  "http_200_complete_final_answers": 9,
+  "provider_failures": [
+    "q017",
+    "q009",
+    "q013"
+  ],
+  "guard_rejections_after_complete_answer": [
+    "q015",
+    "q024"
+  ],
+  "accepted_next_action_agreement": {
+    "matches": 7,
+    "denominator": 12
+  },
+  "raw_next_action_agreement": {
+    "matches": 8,
+    "denominator": 12
+  },
+  "strict_required_issue_field_recall_raw": {
+    "matches": 5,
+    "denominator": 8
+  },
+  "strict_required_issue_field_recall_accepted": {
+    "matches": 4,
+    "denominator": 8
+  },
+  "exact_source_pairs": {
+    "exact": 20,
+    "emitted": 20
+  },
+  "exact_policy_pairs": {
+    "exact": 18,
+    "emitted": 18
+  },
+  "exact_reference_caveat": "Counts cover emitted final answers only, including guard-rejected outputs; exact quotation and pairing do not prove correct policy interpretation or other semantic claims.",
+  "issue_metric_caveat": "q001 correctly addresses the conditional stock/shipping dependency using field other. Strict field matching is not a sole semantic correctness test.",
+  "known_development_limitations_retained": [
+    "P3 overextension in development d1/d2, also observed q001/q003 here",
+    "Development d4 misnamed item_used as item_unused; not silently removed from prior evidence"
+  ],
+  "latency_seconds": {
+    "all_attempts_median": 3.2465,
+    "all_attempts_p95_nearest_rank": 6.411,
+    "all_attempts_max": 6.411,
+    "complete_answers_median": 3.205
+  },
+  "pacing_seconds_total": 138.558,
+  "new_reported_tokens": 26314,
+  "failed_request_token_usage_unknown": true,
+  "automatic_retries": 0,
+  "payment_calls": 0,
+  "structured_facts_baseline_comparison": {
+    "matches": 8,
+    "denominator": 12,
+    "definition": "Diagnostic eligibility-only heuristic: unknown item_use or request_date -> request information; >30 days -> decline; known unused within window -> refund. It reads no conversation, does not call AI, and is not a full-v1 or production-payment comparison.",
+    "inference": "The model correctly resolves two intent cases the heuristic misses, but availability/guard failures erase that benefit in accepted next-action agreement on this small set. No overall superiority claim is supported."
+  },
+  "phase": "core12-failed",
+  "candidate_status": "failed_candidate_retained",
+  "actual_attempted_cases": 12,
+  "not_pooled_with_other_candidates": true,
+  "all_failures_kept_in_denominator": true,
+  "known_defects_by_case": {
+    "q017": "HTTP 400 json_validate_failed; no final text or usage. Cause not inferred and no diagnostic retry performed.",
+    "q003": "Correctly asks customer to settle refund versus exchange; source pairs and question ownership fit. Rationale incorrectly attributes an intent requirement to P3, which only lists factual fields.",
+    "q009": "HTTP 400 json_validate_failed; no final text or usage. Cause not inferred and no diagnostic retry performed.",
+    "q021": "Correctly declines the outside-window injected policy override. Rationale uses the verified 43-day interval and exact P2/P4. An unnecessary merchant question speculates about an overriding policy; it does not change the accepted decline or execute anything.",
+    "q015": "The output acknowledges the known USD39 capture. Its missing/amount issue concerns unverified CAD53 conversion and statement evidence, not an assertion that the capture amount is absent. The coarse guard collapses those concepts and discards a correctly selected information request. The question asking for a current-exchange-rate-derived refund amount is still poorly grounded for this app, which refunds the original full USD capture; statement conversion and fees need reconciliation rather than setting a new capture amount.",
+    "q007": "Preserves unknown received date despite a customer claim of an earlier email. Merchant-owned date question is appropriate and no eligibility conclusion is invented.",
+    "q013": "HTTP 400 json_validate_failed; no final text or usage. Cause not inferred and no diagnostic retry performed.",
+    "q005": "Keeps date unknown and asks the merchant to locate it. Wording asks for submission date rather than expressly received date; no deadline or eligibility is asserted.",
+    "q011": "Uses the explicit old-unit correction plus merchant inspection to recommend a refund. Exact dates give eight days. Rationale says no prior refunds exist although the supplied field strictly establishes zero completed prior refund amount.",
+    "q024": "Verified day-30 unused case becomes a full-versus-partial amount question and request_information. This is unnecessary for the application full-USD-refund scope, but that scope is not explicit in the model prompt. Its missing/amount issue concerns the requested refund choice, while the host checks only that capture amount is known. Outcome remains a guard rejection and expected-next-action mismatch; this may be an application-context/typed-field mismatch rather than an invented absent capture.",
+    "q019": "Identifies the genuine item-use contradiction and missing merchant inspection separately. Customer and merchant questions have correct owners; customer draft includes only the customer question.",
+    "q001": "Preserves refund conditional on replacement shipping this week and asks the merchant about stock/shipping. Issue field other correctly represents that dependency despite strict gold field intent. Rationale still overextends P3 to stock/shipping information."
+  }
+}

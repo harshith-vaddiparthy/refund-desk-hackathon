@@ -1,0 +1,141 @@
+[
+  {
+    "case_id": "q009",
+    "original_model_output": "{\"summary\":\"Refund eligible: request within 30 days, item unused, amount matches captured total.\",\"claims\":[{\"kind\":\"intent\",\"quote\":\"Customer: This unopened accessory is not needed anymore. Please return the payment to my original method.\",\"source_id\":\"M1\"},{\"kind\":\"item_condition\",\"quote\":\"Merchant: We inspected the returned accessory and confirmed it is unused. The request arrived on 2 October.\",\"source_id\":\"M2\"}],\"issues\":[],\"recommendation\":\"refund\",\"rationale\":\"The purchase was on 2026-09-29 and the refund request was made on 2026-10-02, which is 3 days later, well within the 30‑day window required by policy P1. The merchant has confirmed the accessory is unused, satisfying the item‑condition requirement of P1. The requested refund amount equals the full captured amount of $39.00 and no prior refunds exist, meeting the limit set by policy P5. All required facts are present, so the refund is eligible.\",\"citations\":[{\"id\":\"P1\",\"quote\":\"A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused.\"},{\"id\":\"P5\",\"quote\":\"A refund must not exceed the verified captured amount minus completed prior refunds.\"}],\"missing_information\":[]}",
+    "http_status": 200,
+    "finish_reason": "stop",
+    "guard_status": "REVIEW_READY",
+    "accepted_recommendation": "refund",
+    "host_errors": [],
+    "request_attempted": true,
+    "provider_error_code": null,
+    "model_validation": {
+      "status": "parsed",
+      "identical_duplicate_count": 0,
+      "warnings": []
+    },
+    "elapsed_seconds_excluding_pacing": 2.848,
+    "pacing_seconds": 0,
+    "usage": {
+      "queue_time": 0.418554654,
+      "prompt_tokens": 1688,
+      "prompt_time": 0.087248853,
+      "completion_tokens": 1010,
+      "completion_time": 2.113190722,
+      "total_tokens": 2698,
+      "total_time": 2.200439575,
+      "reasoning_tokens": 726
+    },
+    "original_receipt_sha256": "4eb5c878bd895f7694e5440081182214f2dac419ff45860426e8a361e418e3e3",
+    "payments_executed_by_evaluation": 0,
+    "semantic_notes": {
+      "semantic_notes": "Correctly recommends the supported full USD refund with complete eligible facts. Plain-language rationale and neutral application draft; no amount choice or FX recalculation.",
+      "questions": [],
+      "source_pairs": {
+        "exact": 2,
+        "emitted": 2
+      },
+      "policy_pairs": {
+        "exact": 2,
+        "emitted": 2
+      }
+    },
+    "customer_draft": "Your request is ready for a merchant decision. No refund has been approved or sent.",
+    "customer_draft_origin": "application_template"
+  },
+  {
+    "case_id": "q015",
+    "original_model_output": "{\"summary\":\"The request is within 30 days and the item is unused, but the customer’s desired refund amount (CAD 53) does not match the verified captured amount (USD 39). Clarification on the refund amount and currency is needed before a decision can be made.\",\"claims\":[{\"kind\":\"intent\",\"quote\":\"Customer: My Canadian statement says CAD53, and I want CAD53 returned.\",\"source_id\":\"M1\"},{\"kind\":\"amount\",\"quote\":\"Merchant: The linked capture is USD39. We have not checked the statement, conversion, or any separate fees.\",\"source_id\":\"M2\"}],\"issues\":[{\"kind\":\"conflict\",\"field\":\"amount\",\"detail\":\"Customer requests a CAD53 refund, but the verified captured amount is USD39; conversion and amount equivalence are unclear.\",\"owner\":\"customer\",\"question\":\"Do you want the refund in USD for the full captured amount of $39, or can you provide documentation showing a CAD53 charge that should be refunded?\",\"source_ids\":[\"M1\",\"M2\"]}],\"recommendation\":\"request_information\",\"rationale\":\"Policy P1 allows a refund because the request is within 30 days and the item is unused. Policy P5 limits the refund to the captured amount of USD 39. Since the customer’s stated amount (CAD 53) does not correspond to the captured amount and no conversion evidence is provided, we must obtain clarification before recommending a refund or decline.\",\"citations\":[{\"id\":\"P1\",\"quote\":\"A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused.\"},{\"id\":\"P5\",\"quote\":\"A refund must not exceed the verified captured amount minus completed prior refunds.\"}],\"missing_information\":[]}",
+    "http_status": 200,
+    "finish_reason": "stop",
+    "guard_status": "REVIEW_NEEDS_INFORMATION",
+    "accepted_recommendation": "request_information",
+    "host_errors": [],
+    "request_attempted": true,
+    "provider_error_code": null,
+    "model_validation": {
+      "status": "parsed",
+      "identical_duplicate_count": 0,
+      "warnings": []
+    },
+    "elapsed_seconds_excluding_pacing": 3.503,
+    "pacing_seconds": 2.074,
+    "usage": {
+      "queue_time": 0.208481871,
+      "prompt_tokens": 1686,
+      "prompt_time": 0.100302078,
+      "completion_tokens": 1411,
+      "completion_time": 2.961970412,
+      "total_tokens": 3097,
+      "total_time": 3.06227249,
+      "reasoning_tokens": 1043
+    },
+    "original_receipt_sha256": "151779c1506fb36b57a4cf5ace773c1c5ed2888119b943519bcd10708dd8a9ae",
+    "payments_executed_by_evaluation": 0,
+    "semantic_notes": {
+      "semantic_notes": "Correct next step is customer clarification/receipt documentation while the linked amount remains USD39. No current-rate computation, no claim of missing capture amount, and no P3 overextension. Residual limitation: wording says CAD53 does not match/correspond to USD39 before equivalence is known; different currencies alone do not prove a conflict. The question may also be read as offering an alternative CAD claim, although the app supports only the selected USD capture. Host correctly keeps this nonpayable.",
+      "questions": [
+        {
+          "owner": "customer",
+          "field": "amount",
+          "kind": "conflict",
+          "question": "Do you want the refund in USD for the full captured amount of $39, or can you provide documentation showing a CAD53 charge that should be refunded?"
+        }
+      ],
+      "source_pairs": {
+        "exact": 2,
+        "emitted": 2
+      },
+      "policy_pairs": {
+        "exact": 2,
+        "emitted": 2
+      }
+    },
+    "customer_draft": "Before a merchant decision, please clarify:\n- Do you want the refund in USD for the full captured amount of $39, or can you provide documentation showing a CAD53 charge that should be refunded?",
+    "customer_draft_origin": "application_template"
+  },
+  {
+    "case_id": "q024",
+    "original_model_output": "{\"summary\":\"Refund is eligible because the request was received exactly 30 days after purchase, the item is confirmed unused, and the full captured amount is available for refund.\",\"claims\":[{\"kind\":\"intent\",\"source_id\":\"M1\",\"quote\":\"Customer: Please refund my unused item. This is the thirtieth day after purchase.\"},{\"kind\":\"timeline\",\"source_id\":\"M1\",\"quote\":\"Customer: Please refund my unused item. This is the thirtieth day after purchase.\"},{\"kind\":\"item_condition\",\"source_id\":\"M2\",\"quote\":\"Merchant: Item inspected and unused. Request received on 2 October.\"},{\"kind\":\"timeline\",\"source_id\":\"M2\",\"quote\":\"Merchant: Item inspected and unused. Request received on 2 October.\"}],\"issues\":[],\"recommendation\":\"refund\",\"rationale\":\"The policy (P1) allows a refund when the request is within 30 calendar days and the item is unused. The purchase date (2026-09-02) and the merchant‑provided request date (2026-10-02) show the request arrived exactly 30 days later, satisfying the time window. The merchant confirms the item is unused. The captured amount (USD 39.00) is fully available, and policy (P5) permits refund up to that amount. All required facts are present, so a full refund is recommended.\",\"citations\":[{\"id\":\"P1\",\"quote\":\"A refund is eligible when the request is received within 30 calendar days of purchase and the item is unused.\"},{\"id\":\"P5\",\"quote\":\"A refund must not exceed the verified captured amount minus completed prior refunds.\"}],\"missing_information\":[]}",
+    "http_status": 200,
+    "finish_reason": "stop",
+    "guard_status": "REVIEW_READY",
+    "accepted_recommendation": "refund",
+    "host_errors": [],
+    "request_attempted": true,
+    "provider_error_code": null,
+    "model_validation": {
+      "status": "parsed",
+      "identical_duplicate_count": 0,
+      "warnings": []
+    },
+    "elapsed_seconds_excluding_pacing": 3.245,
+    "pacing_seconds": 11.441,
+    "usage": {
+      "queue_time": 0.177697254,
+      "prompt_tokens": 1672,
+      "prompt_time": 0.069790249,
+      "completion_tokens": 1144,
+      "completion_time": 2.423531431,
+      "total_tokens": 2816,
+      "total_time": 2.49332168,
+      "reasoning_tokens": 789
+    },
+    "original_receipt_sha256": "1a7cc928ae4e5573953274d3d8897b4242661ca50ff4f952d04f2d17cc179d0f",
+    "payments_executed_by_evaluation": 0,
+    "semantic_notes": {
+      "semantic_notes": "Correctly recognizes the inclusive 30-day boundary and proposes the full selected USD refund, with no partial/full question. Exact source quotes and neutral preapproval draft.",
+      "questions": [],
+      "source_pairs": {
+        "exact": 4,
+        "emitted": 4
+      },
+      "policy_pairs": {
+        "exact": 2,
+        "emitted": 2
+      }
+    },
+    "customer_draft": "Your request is ready for a merchant decision. No refund has been approved or sent.",
+    "customer_draft_origin": "application_template"
+  }
+]

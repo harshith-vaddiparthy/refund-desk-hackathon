@@ -16,7 +16,7 @@ import threading
 STATIC = Path(__file__).resolve().parent / "static"
 DEFAULT_FRONTEND_DIR = Path(__file__).resolve().parent / "frontend" / "dist"
 MAX_BODY = 16 * 1024
-CASE_PATH = re.compile(r"/api/cases/([A-Za-z0-9_-]{1,80})(?:/(review|approve|refresh))?\Z")
+CASE_PATH = re.compile(r"/api/cases/([A-Za-z0-9_-]{1,80})(?:/(review|approve|refresh|resolve))?\Z")
 CSP = ("default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; "
        "img-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
 # Generated Sidebar/Sonner attributes and Radix modal style elements require
@@ -219,8 +219,12 @@ class Handler(BaseHTTPRequestHandler):
         return valid
 
     def session(self):
+        runtime = getattr(self.server.service, "ai_runtime", None)
+        descriptor = ({key: runtime[key] for key in ("provider", "model", "location")}
+                      if isinstance(runtime, dict) and all(isinstance(runtime.get(key), str)
+                                                         for key in ("provider", "model", "location")) else None)
         return {"session_token": self.server.session_token, "csrf_token": self.server.csrf_token, "environment": "sandbox",
-                "approval_mode": self.server.approval_mode}
+                "approval_mode": self.server.approval_mode, "ai_runtime": descriptor}
 
     def body(self):
         lengths = self.headers.get_all("Content-Length", [])
@@ -337,40 +341,53 @@ class Handler(BaseHTTPRequestHandler):
         if not self.server.operation_lock.acquire(blocking=False):
             self.problem(409, "busy", "Another operation is still running. Wait for it to finish.")
             return
-        try:
-            self.guarded(lambda: self.perform(payload, match))
-        finally:
-            self.server.operation_lock.release()
+        def complete():
+            try:
+                response = self.perform(payload, match)
+            finally:
+                self.server.operation_lock.release()
+            # A received response means the action and its lock cleanup have
+            # completed; a fast next request must not race this handler's tail.
+            self.reply(*response)
+        self.guarded(complete)
 
     def perform(self, payload, match):
+        def invalid(code, message):
+            return 400, {"error": {"code": code, "message": message}}
+
         service = self.server.service
         if self.path == "/api/cases":
             if set(payload) != {"capture_id", "customer_message", "item_used", "request_date"}:
-                self.problem(400, "invalid_request", "Supply only capture ID, customer message, item-use status, and request date.")
-                return
+                return invalid("invalid_request", "Supply only capture ID, customer message, item-use status, and request date.")
             if (not isinstance(payload["capture_id"], str) or not re.fullmatch(r"[A-Za-z0-9]{1,64}", payload["capture_id"])
                     or not isinstance(payload["customer_message"], str) or not 1 <= len(payload["customer_message"]) <= 4000
                     or payload["item_used"] is not None and type(payload["item_used"]) is not bool
-                    or not isinstance(payload["request_date"], str) or len(payload["request_date"]) != 10):
-                self.problem(400, "invalid_request", "Check the capture ID, message, item-use status, and request date.")
-                return
-            self.reply(201, {"case": service.create_case(**payload)})
-            return
+                    or payload["request_date"] is not None and (not isinstance(payload["request_date"], str) or len(payload["request_date"]) != 10)):
+                return invalid("invalid_request", "Check the capture ID, message, item-use status, and request date.")
+            return 201, {"case": service.create_case(**payload)}
         case_id, action = match.groups()
-        if action == "approve":
+        if action == "resolve":
+            allowed = {"expected_version", "customer_message", "item_used", "request_date", "resolution_note"}
+            if (not set(payload) <= allowed or "expected_version" not in payload
+                    or not isinstance(payload["expected_version"], str) or not re.fullmatch(r"[0-9a-f]{64}", payload["expected_version"])
+                    or "customer_message" in payload and (not isinstance(payload["customer_message"], str) or not 1 <= len(payload["customer_message"]) <= 4000)
+                    or "item_used" in payload and payload["item_used"] is not None and type(payload["item_used"]) is not bool
+                    or "request_date" in payload and payload["request_date"] is not None and (not isinstance(payload["request_date"], str) or len(payload["request_date"]) != 10)
+                    or "resolution_note" in payload and payload["resolution_note"] is not None and (not isinstance(payload["resolution_note"], str) or len(payload["resolution_note"]) > 2000)):
+                return invalid("invalid_resolution", "Supply the current version and only conversation, nullable merchant facts, and resolution explanation.")
+            result = service.resolve_case(case_id, **payload)
+        elif action == "approve":
             if (set(payload) != {"review_hash", "confirmed"} or payload["confirmed"] is not True
                     or not isinstance(payload["review_hash"], str) or not re.fullmatch(r"[0-9a-f]{64}", payload["review_hash"])):
-                self.problem(400, "approval_required", "Explicit approval of the current review is required.")
-                return
+                return invalid("approval_required", "Explicit approval of the current review is required.")
             result = service.approve(case_id, payload["review_hash"])
         elif payload:
-            self.problem(400, "invalid_request", "This action takes no browser-supplied facts.")
-            return
+            return invalid("invalid_request", "This action takes no browser-supplied facts.")
         elif action == "review":
             result = service.review_case(case_id)
         else:
             result = service.refresh(case_id)
-        self.reply(200, {"case": result})
+        return 200, {"case": result}
 
 
 def save_session(path, value):
@@ -393,20 +410,33 @@ def main(argv=None):
     parser.add_argument("--data-dir", type=Path, default=Path.home() / ".local/share/refund-desk")
     parser.add_argument("--port", type=int, default=8749)
     parser.add_argument("--test-operator", help="Trusted operator label for automated QA; never human approval")
+    parser.add_argument("--ai-provider", choices=("local", "groq"), default="local",
+                        help="Explicit AI route; local is the default and no cloud fallback is used")
+    parser.add_argument("--groq-client-file", type=Path,
+                        help="Owner-only Groq credential JSON; required only when --ai-provider groq is selected")
     parser.add_argument("--frontend-dir", type=Path, default=DEFAULT_FRONTEND_DIR,
                         help="Compiled Vite build directory (default: repository frontend/dist); missing/unsafe builds are rejected")
     args = parser.parse_args(argv)
     if not 0 <= args.port <= 65535:
         parser.error("Port must be between 0 and 65535.")
+    if args.ai_provider == "groq" and args.groq_client_file is None:
+        parser.error("--ai-provider groq requires --groq-client-file.")
+    if args.ai_provider != "groq" and args.groq_client_file is not None:
+        parser.error("--groq-client-file requires explicit --ai-provider groq.")
     try:
         # Fail with build instructions before reading credentials or creating
         # application state. The server later pins its own validated root handle.
         FrontendBuild(args.frontend_dir).close()
+        from model_config import select_runtime
+        try:
+            runtime = select_runtime(args.ai_provider, args.groq_client_file)
+        except (ValueError, OSError):
+            parser.exit(1, "AI runtime configuration is invalid. Check the selected provider and its owner-only credential file.\n")
         from paypal import PayPalClient
         from service import RefundService
         options = ({"approval_kind": "test_operator", "approved_by": args.test_operator} if args.test_operator else {})
         service = RefundService(args.data_dir, PayPalClient.from_file(args.client_file),
-                                args.merchant_id, args.merchant_email, **options)
+                                args.merchant_id, args.merchant_email, runtime=runtime, **options)
         server = ReviewServer(("127.0.0.1", args.port), service,
                               approval_mode="test_operator" if args.test_operator else "human_ui",
                               frontend_dir=args.frontend_dir)
