@@ -11,10 +11,11 @@ The default interface is React + TypeScript + Vite, built with shadcn CLI
 source hashes. The dashboard includes Overview, searchable/filterable Cases,
 Policy without needing a first case, and review/approval/audit detail.
 
-**The shadcn dashboard is verified through a real sandbox refund.** Three
+**The shadcn dashboard is verified through real sandbox refunds.** Four
 separate USD 39.00 refunds are verified across the retained proof runs, with
-actual local AI and test-operator approval. The latest completed through the
-shadcn interface, including the approval checkbox and independent PayPal readback.
+actual local AI and test-operator approval. The latest used a fresh public
+checkout and empty workspace, including the approval checkbox and independent
+PayPal readback.
 These observations do not establish personal merchant approval, production
 readiness, public deployment or competition submission.
 
@@ -256,6 +257,15 @@ approval, and independently verified refund `00K11021V5076505G` for capture
 At that checkpoint the dashboard held two browser cases and showed two verified
 refunds totaling USD 78.00. The first standalone API proof used a separate store.
 Raw credentials and API receipts are excluded from source control.
+
+The [fresh-checkout rehearsal](benchmarks/judge-rehearsal-proof.json) used an
+anonymous public Git clone, a clean frontend build and an empty private data
+directory. It completed a new sandbox purchase, a **49.733-second** local review,
+explicit test-operator approval and independently verified refund
+`8T744493UL845153Y`. The ledger has one case, review, approval, operation and
+submission claim. Existing private sandbox accounts and the installed pinned
+model were reused; first-time account/tool installation and native macOS backend
+execution are not claimed.
 
 The compiled shadcn dashboard was checked in Ego: startup, Overview, Policy,
 search/filters, a 390px mobile layout without horizontal overflow, blocking an

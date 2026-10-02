@@ -1,0 +1,99 @@
+{
+  "checked_at": "2026-10-02T18:42:58.552908+00:00",
+  "status": "FRESH_PUBLIC_CHECKOUT_REFUND_VERIFIED",
+  "source_sha": "85af1ddb41eac52ec54d75fbd0b826d069105531",
+  "case_id": "dedc2b7c-42fa-4d06-9750-d491d702f4f3",
+  "capture_id": "22866227YT9554520",
+  "refund_id": "8T744493UL845153Y",
+  "operation_id": "ecd27212-5ae0-4274-9b9f-37566c3fc17b",
+  "operation_state": "verified",
+  "provider_status": "COMPLETED",
+  "capture_status": "REFUNDED",
+  "currency": "USD",
+  "amount_minor": 3900,
+  "refund_get_http": 200,
+  "capture_get_http": 200,
+  "capture_association_verified": true,
+  "merchant_id": "3CF3TCRUY5RUL",
+  "merchant_id_email_match_on_independent_capture_get": true,
+  "refund_payee_returned": false,
+  "merchant_proof_source": "Independent capture GET; no merchant identity invented in refund GET",
+  "approval_kind": "test_operator",
+  "approved_by": "Fresh public checkout judge rehearsal",
+  "approval_snapshot": {
+    "amount_minor": 3900,
+    "capture_id": "22866227YT9554520",
+    "case_version": "e53abfa9a6eb823c79c0e54c3a9c0494189f42d98cb2b0235d8b0c51bad9b6b1",
+    "currency": "USD",
+    "policy_version": "synthetic-refund-policy-2026-10-02.v1",
+    "review_hash": "eec175d016f1d4361d1e850693134b28b3c26e9143a247e5ed36b79c06ba912a"
+  },
+  "review_hash_matches_immutable_report": true,
+  "review_hash_matches_approved_snapshot": true,
+  "counts": {
+    "cases": 1,
+    "reviews": 1,
+    "operations": 1,
+    "approvals": 1
+  },
+  "submission_claim_count": 1,
+  "duplicate_operations_for_this_capture": 0,
+  "duplicate_reviews_for_this_case": 0,
+  "provider_replay_performed_in_this_rehearsal": false,
+  "second_claim_attempted_in_this_rehearsal": false,
+  "model": {
+    "name": "qwen3:4b",
+    "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+    "elapsed_seconds": 49.733,
+    "actual_calls": 1,
+    "completed_responses": 1
+  },
+  "guard_errors": [],
+  "event_timeline": [
+    {
+      "kind": "approved",
+      "from": null,
+      "to": "prepared",
+      "at": "2026-10-02T18:41:33.616157+00:00"
+    },
+    {
+      "kind": "submission_claimed",
+      "from": "prepared",
+      "to": "submitting",
+      "at": "2026-10-02T18:41:33.640688+00:00"
+    },
+    {
+      "kind": "submission_received",
+      "from": "submitting",
+      "to": "pending",
+      "at": "2026-10-02T18:41:35.891594+00:00"
+    },
+    {
+      "kind": "refund_readback",
+      "from": "pending",
+      "to": "verified",
+      "at": "2026-10-02T18:41:36.439522+00:00"
+    }
+  ],
+  "independent_audit_methods": [
+    "GET refund",
+    "GET capture"
+  ],
+  "independent_audit_payment_posts": 0,
+  "limits": [
+    "Existing privately held sandbox app/buyer reused",
+    "Existing installed pinned Ollama reused; no first-time install claim",
+    "Linux backend with Ego Mac mini browser; no native macOS backend claim",
+    "Automated test_operator approval; not a personal human_ui action",
+    "Sandbox money only"
+  ],
+  "approval_binding_hash_matches_exact_snapshot": true,
+  "approval_binding_hash": "11f96d36d6c2ca8d8a2e06992cb3d262ec8bfb42572eb0d26b9f8ad0c0ed0248",
+  "raw_receipts_owner_only": true,
+  "raw_receipt_sha256": [
+    "737ab87204a18f919408da2b454cc3139d6222a500fc91c6124a4662c7614916",
+    "7ef09765f8ed34f9f7a5d5ecb5211298ae85eb0be9f8fafe03e2e5492fda546b"
+  ],
+  "raw_receipts_excluded": true,
+  "environment": "paypal_sandbox"
+}
