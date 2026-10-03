@@ -401,8 +401,8 @@ separate failures. Their data, prompts and metrics differ; do not pool them with
 the latest eight or replace their failures with later runs. Reused development
 examples are separately labelled and excluded from unseen-case metrics.
 
-V2's updated public source, final video and entry update remain release steps;
-they are not established by this successful sandbox workflow.
+The v2 source is available in this repository; the narrated demo and updated
+Devpost entry are linked above.
 
 The four existing proofs below establish **v1**, not v2's new AI behavior:
 
